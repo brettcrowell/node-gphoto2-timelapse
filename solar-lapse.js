@@ -10,16 +10,6 @@ GPhoto.list(function (list) {
   camera = list[0];
   console.log('Found', camera.model);
 
-  // get configuration tree
-  camera.getConfig(function (er, settings) {
-    console.log(settings);
-  });
-
-  // Set configuration values
-  camera.setConfigValue('main.children.capturesettings.children.focallength.value', 105, function (er) {
-    //...
-  });
-
   // Take picture with camera object obtained from list()
   var takePicture = function(i){
     camera.takePicture({download: true}, function (er, data) {
