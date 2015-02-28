@@ -2,10 +2,12 @@ var gphoto2 = require('gphoto2');
 var GPhoto = new gphoto2.GPhoto2();
 var fs = require('fs');
 
+var camera = null;
+
 // List cameras / assign list item to variable to use below options
 GPhoto.list(function (list) {
   if (list.length === 0) return;
-  var camera = list[0];
+  camera = list[0];
   console.log('Found', camera.model);
 
   // get configuration tree
@@ -19,8 +21,12 @@ GPhoto.list(function (list) {
   });
 
   // Take picture with camera object obtained from list()
-  camera.takePicture({download: true}, function (er, data) {
-    fs.writeFileSync(__dirname + '/picture.jpg', data);
-  });
+  var takePicture = function(i){
+    camera.takePicture({download: true}, function (er, data) {
+      fs.writeFileSync(__dirname + '/picture' + i + '.jpg', data);
+    });
+  };
+
+  takePicture(1);
 
 });
