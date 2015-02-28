@@ -27,6 +27,13 @@ GPhoto.list(function (list) {
     });
   };
 
-  takePicture(1);
+  var distances = [0, 5000]
+  
+  for(var i = 0; i < distances.length; i++){
+    var timeout = distances[i];
+    setTimeout(function(){
+      takePicture(i);
+    }, timeout)
+  }
 
 });
