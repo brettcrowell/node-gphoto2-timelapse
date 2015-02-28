@@ -19,19 +19,33 @@ GPhoto.list(function (list) {
 
   // fake two shots
   var exposures = [];
+  var nextIndex = 0;
 
+  exposures.push(new Date().getTime() - 1000);
   exposures.push(new Date().getTime() + 1000);
-  exposures.push(new Date().getTime() + 3000);
+  exposures.push(new Date().getTime() + 10000);
+  exposures.push(new Date().getTime() + 30000);
 
   var takeNextPicture = function(skip){
 
     if(!skip){
       // need to skip the priming call
-      takePicture(exposures.length);
+      console.log('taking image');
+      takePicture(nextIndex);
     }
 
     if(exposures.length > 0){
-      setTimeout(takeNextPicture, exposures.shift());
+
+      var currentTime = new Date().getTime(),
+          nextImage;
+
+      while((nextImage = exposures.shift()) < currentTime){
+        console.log('skipping');
+        // skip any images that should have already been taken
+        nextIndex++;
+      }
+      nextIndex++;
+      setTimeout(takeNextPicture, nextImage - currentTime);
       return;
     }
 
