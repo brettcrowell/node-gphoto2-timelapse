@@ -16,6 +16,10 @@
     ""
   ],
   "dependencies": {
+    "fs": "0.0.2",
     "gphoto2": "^0.1.7"
+  },
+  "devDependencies": {
+    "node-inspector": "^0.9.1"
   }
 }
