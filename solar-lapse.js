@@ -27,13 +27,28 @@ GPhoto.list(function (list) {
     });
   };
 
-  var distances = [0, 5000]
-  
-  for(var i = 0; i < distances.length; i++){
-    var timeout = distances[i];
-    setTimeout(function(){
-      takePicture(i);
-    }, timeout)
+  // fake two shots
+  var exposures = [];
+
+  exposures.push(new Date().getTime() + 1000);
+  exposures.push(new Date().getTime() + 3000);
+
+  var takeNextPicture = function(skip){
+
+    if(!skip){
+      // need to skip the priming call
+      takePicture(exposures.length);
+    }
+
+    if(exposures.length > 0){
+      setTimeout(takeNextPicture, exposures.shift());
+      return;
+    }
+
+    console.log('done');
+
   }
+
+  takeNextPicture(true);
 
 });
