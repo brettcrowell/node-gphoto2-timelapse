@@ -21,10 +21,19 @@ GPhoto.list(function (list) {
   var exposures = [];
   var nextIndex = 0;
 
-  exposures.push(new Date().getTime() - 1000);
-  exposures.push(new Date().getTime() + 1000);
-  exposures.push(new Date().getTime() + 10000);
-  exposures.push(new Date().getTime() + 30000);
+  // fake lapse, 1 hour in 30 seconds
+  var begin = new Date().getTime();
+
+  var timespan = 60, //minutes
+      realSeconds = timespan * 60,
+      outputSeconds = 30,
+      frames = outputSeconds * 30,
+      intervalSeconds = realSeconds / frames,
+      intervalMs = intervalSeconds * 1000;
+
+  for(var i = 0; i < 900; i++){
+    exposures.push(begin + (intervalMs * i));
+  }
 
   var takeNextPicture = function(skip){
 
