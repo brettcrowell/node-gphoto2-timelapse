@@ -2,7 +2,6 @@
   "name": "solar-lapse",
   "version": "0.0.0",
   "description": "The best module ever.",
-
   "author": {
     "name": "Brett Crowell",
     "email": "brettcrowell@gmail.com"
@@ -15,5 +14,8 @@
   "keywords": [
     "solar-lapse",
     ""
-  ]
+  ],
+  "dependencies": {
+    "gphoto2": "^0.1.7"
+  }
 }
