@@ -39,7 +39,7 @@ GPhoto.list(function (list) {
 
     if(!skip){
       // need to skip the priming call
-      console.log('taking image');
+      console.log('taking image ' + nextIndex);
       takePicture(nextIndex);
     }
 
@@ -49,7 +49,7 @@ GPhoto.list(function (list) {
           nextImage;
 
       while((nextImage = exposures.shift()) < currentTime){
-        console.log('skipping');
+        console.log('skipping image ' + nextIndex);
         // skip any images that should have already been taken
         nextIndex++;
       }
