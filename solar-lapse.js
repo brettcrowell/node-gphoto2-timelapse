@@ -39,19 +39,20 @@ GPhoto.list(function (list) {
 
   // Take picture with camera object obtained from list()
   var takePicture = function(i){
+
     camera.takePicture({download: true}, function (er, data) {
 
       var imageFilename = 'picture' + i + '.jpg',
           imagePath = __dirname + '/output/' + imageFilename;
 
-      fs.writeFileSync(imageFilename, data);
+      fs.writeFileSync(imagePath, data);
 
-      var imageStream = fs.createReadStream(imageFilename);
+      var imageStream = fs.createReadStream(imagePath);
 
       var s3 = new AWS.S3({
         params: {
           Bucket: 'bc-timelapse',
-          Key: imageFilename
+          Key: begin + "/" + imageFilename
         }
       });
 
@@ -59,13 +60,11 @@ GPhoto.list(function (list) {
         if (err) {
           console.log("Error uploading data: ", err);
         } else {
-          console.log("Successfully uploaded data to myBucket/myKey");
+          fs.unlink(imagePath);
         }
       });
-        on('httpUploadProgress', function(evt) { console.log(evt); }).
-        send(function(err, data) { console.log(err, data) });
-
     });
+
   };
 
   // fake two shots
