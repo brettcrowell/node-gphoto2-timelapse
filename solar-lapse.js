@@ -1,14 +1,16 @@
 var gphoto2 = require('gphoto2');
+var AWS = require('aws-sdk');
 
 var GPhoto = new gphoto2.GPhoto2();
 var fs = require('fs');
 
 var camera = null;
 
+var begin = new Date().getTime();
+
 function getExposures(){
 
-  // fake lapse, 1 hour in 30 seconds
-  var begin = new Date().getTime();
+  var exposures = [];
 
   /*var timespan = 60, //minutes
       realSeconds = timespan * 60,
@@ -18,7 +20,7 @@ function getExposures(){
       intervalMs = intervalSeconds * 1000;*/
 
   for(var i = 0; i < 60; i++){
-    exposures.push(begin + (i * 60000));
+    exposures.push(begin + (i * 30000));
   }
 
   exposures.sort(function(a, b) {
@@ -38,7 +40,31 @@ GPhoto.list(function (list) {
   // Take picture with camera object obtained from list()
   var takePicture = function(i){
     camera.takePicture({download: true}, function (er, data) {
-      fs.writeFileSync(__dirname + '/output/picture' + i + '.jpg', data);
+
+      var imageFilename = 'picture' + i + '.jpg',
+          imagePath = __dirname + '/output/' + imageFilename;
+
+      fs.writeFileSync(imageFilename, data);
+
+      var imageStream = fs.createReadStream(imageFilename);
+
+      var s3 = new AWS.S3({
+        params: {
+          Bucket: 'bc-timelapse',
+          Key: imageFilename
+        }
+      });
+
+      s3.upload({ Body: imageStream}, function(err, data) {
+        if (err) {
+          console.log("Error uploading data: ", err);
+        } else {
+          console.log("Successfully uploaded data to myBucket/myKey");
+        }
+      });
+        on('httpUploadProgress', function(evt) { console.log(evt); }).
+        send(function(err, data) { console.log(err, data) });
+
     });
   };
 
