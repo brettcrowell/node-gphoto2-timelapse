@@ -45,24 +45,35 @@ GPhoto.list(function (list) {
       var imageFilename = 'picture' + i + '.jpg',
           imagePath = __dirname + '/output/' + imageFilename;
 
-      fs.writeFileSync(imagePath, data);
+      fs.writeFile(imagePath, data, function (err) {
 
-      var imageStream = fs.createReadStream(imagePath);
+        if (err){
 
-      var s3 = new AWS.S3({
-        params: {
-          Bucket: 'bc-timelapse',
-          Key: begin + "/" + imageFilename
-        }
-      });
+          console.log(err);
 
-      s3.upload({ Body: imageStream}, function(err, data) {
-        if (err) {
-          console.log("Error uploading data: ", err);
         } else {
-          fs.unlink(imagePath);
+
+          var imageStream = fs.createReadStream(imagePath);
+
+          var s3 = new AWS.S3({
+            params: {
+              Bucket: 'bc-timelapse',
+              Key: begin + "/" + imageFilename
+            }
+          });
+
+          s3.upload({ Body: imageStream}, function(err, data) {
+            if (err) {
+              console.log("Error uploading data: ", err);
+            } else {
+              fs.unlink(imagePath);
+            }
+          });
+
         }
+
       });
+
     });
 
   };
