@@ -1,8 +1,33 @@
 var gphoto2 = require('gphoto2');
+
 var GPhoto = new gphoto2.GPhoto2();
 var fs = require('fs');
 
 var camera = null;
+
+function getExposures(){
+
+  // fake lapse, 1 hour in 30 seconds
+  var begin = new Date().getTime();
+
+  /*var timespan = 60, //minutes
+      realSeconds = timespan * 60,
+      outputSeconds = 30,
+      frames = outputSeconds * 30,
+      intervalSeconds = realSeconds / frames,
+      intervalMs = intervalSeconds * 1000;*/
+
+  for(var i = 0; i < 60; i++){
+    exposures.push(begin + (i * 60000));
+  }
+
+  exposures.sort(function(a, b) {
+    return a - b;
+  });
+
+  return exposures;
+
+}
 
 // List cameras / assign list item to variable to use below options
 GPhoto.list(function (list) {
@@ -18,22 +43,8 @@ GPhoto.list(function (list) {
   };
 
   // fake two shots
-  var exposures = [];
+  var exposures = getExposures();
   var nextIndex = 0;
-
-  // fake lapse, 1 hour in 30 seconds
-  var begin = new Date().getTime();
-
-  var timespan = 60, //minutes
-      realSeconds = timespan * 60,
-      outputSeconds = 30,
-      frames = outputSeconds * 30,
-      intervalSeconds = realSeconds / frames,
-      intervalMs = intervalSeconds * 1000;
-
-  for(var i = 0; i < 900; i++){
-    exposures.push(begin + (intervalMs * i));
-  }
 
   var takeNextPicture = function(skip){
 
@@ -56,6 +67,7 @@ GPhoto.list(function (list) {
       nextIndex++;
       setTimeout(takeNextPicture, nextImage - currentTime);
       return;
+
     }
 
     console.log('done');
