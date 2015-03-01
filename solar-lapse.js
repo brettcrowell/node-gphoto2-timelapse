@@ -38,7 +38,7 @@ GPhoto.list(function (list) {
   // Take picture with camera object obtained from list()
   var takePicture = function(i){
     camera.takePicture({download: true}, function (er, data) {
-      fs.writeFileSync(__dirname + '/picture' + i + '.jpg', data);
+      fs.writeFileSync(__dirname + '/output/picture' + i + '.jpg', data);
     });
   };
 
