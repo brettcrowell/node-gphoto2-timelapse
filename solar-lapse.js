@@ -44,7 +44,7 @@ function getExposures(){
   return exposures;
    */
 
-  return surround(1425347100000, 10, 10);
+  return surround(begin + 120000, 10, 10000);
 
 }
 
