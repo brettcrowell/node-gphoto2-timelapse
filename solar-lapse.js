@@ -8,14 +8,14 @@ var camera = null;
 
 var begin = new Date().getTime();
 
-function surround(timestamp, frames, interval){
+function surround(timestamp, frames, msInterval){
 
   var result = [];
 
-  var msPreset = timestamp - ((frames / 2) * interval);
+  var msPreset = timestamp - ((frames / 2) * msInterval);
 
   for(var i = 0; i < frames; i++){
-    result.push(msPreset + (interval * i));
+    result.push(msPreset + (msInterval * i));
   }
 
   return result;
