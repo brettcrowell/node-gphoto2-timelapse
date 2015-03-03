@@ -1,7 +1,8 @@
 var gphoto2 = require('gphoto2'),
     AWS = require('aws-sdk'),
     fs = require('fs'),
-    winston = require('winston');
+    winston = require('winston'),
+    suncalc = require('suncalc');
 
 var begin = new Date().getTime();
 
@@ -41,8 +42,21 @@ function getExposures(){
   for(var i = 0; i < 120; i++){
 
     // take a photo at 6am each day
-    exposures.push(1425380400000 + (i * 86400000));
-    
+    var todayAtSixAm = epoch + (i * 86400000);
+    exposures = exposures.concat(surround(todayAtSixAm, 30, 12000));
+
+    // take a photo at solar noon each day
+    var today = new Date(todayAtSixAm);
+
+    // sun positions
+    suncalc.getTimes(today, 42.3601, 71.0589);
+
+    // solar noon lapse
+    exposures = exposures.concat(surround(suncalc.solarNoon, 30, 12000));
+
+    // golden hour lapse
+    exposures = exposures.concat(surround(suncalc.goldenHour, 30, 12000));
+
 
   }
 
@@ -64,7 +78,7 @@ function getExposures(){
   return exposures;
    */
 
-  return surround(begin + 120000, 10, 10000);
+  return exposures;
 
 }
 
