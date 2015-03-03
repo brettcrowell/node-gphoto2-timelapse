@@ -199,7 +199,7 @@ GPhoto.list(function (list) {
           nextImage;
 
       while((nextImage = exposures.shift()).ts < currentTime){
-        winston.info('skipping image at ' + nextImage.ts);
+        winston.info('skipping image ' + nextImage.name + nextImage.ts);
         // skip any images that should have already been taken
       }
 
