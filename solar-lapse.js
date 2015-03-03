@@ -62,8 +62,8 @@ function getExposures(){
  * no questions asked (hackers gonna hack)
  */
 
-function reboot(){
-  winston.error('bad data detected. rebooting.')
+function reboot(reason){
+  winston.error(reason + ': ' + rebooting.')
   require('reboot').reboot();
 }
 
@@ -72,7 +72,7 @@ GPhoto.list(function (list) {
 
   if (list.length === 0){
     // no cameras found?  not buying it.
-    reboot();
+    reboot('no cameras found');
   };
 
   camera = list[0];
@@ -101,7 +101,7 @@ GPhoto.list(function (list) {
 
         if (err){
 
-          reboot();
+          reboot('error writing data to disk.');
 
         } else {
 
@@ -110,8 +110,8 @@ GPhoto.list(function (list) {
 
           winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
-          if(fileSizeInMegabytes < 0.5){
-            reboot();
+          if(fileSizeInBytes < 100000){
+            reboot('insufficient filesize detected');
           }
 
           var imageStream = fs.createReadStream(imagePath);
