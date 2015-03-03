@@ -63,7 +63,7 @@ function getExposures(){
  */
 
 function reboot(reason){
-  winston.error(reason + ': ' + rebooting);
+  winston.error(reason + ': rebooting');
   require('reboot').reboot();
 }
 
