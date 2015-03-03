@@ -18,7 +18,8 @@
   "dependencies": {
     "aws-sdk": "^2.1.14",
     "fs": "0.0.2",
-    "gphoto2": "^0.1.7"
+    "gphoto2": "^0.1.7",
+    "winston": "^0.9.0"
   },
   "devDependencies": {
     "node-inspector": "^0.9.1"
