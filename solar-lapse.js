@@ -35,6 +35,17 @@ function getExposures(){
 
   var exposures = [];
 
+  // sunrise lapse
+  var epoch  = 1425380400000;
+
+  for(var i = 0; i < 120; i++){
+
+    // take a photo at 6am each day
+    exposures.push(1425380400000 + (i * 86400000));
+    
+
+  }
+
   /*var timespan = 60, //minutes
       realSeconds = timespan * 60,
       outputSeconds = 30,
