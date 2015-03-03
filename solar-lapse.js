@@ -40,7 +40,7 @@ function getExposures(){
   var exposures = [];
 
   // shoot a second at startup, just in case that's all we get
-  exposures = exposures.concat(surround('startup', begin, 60, 12000));
+  exposures = exposures.concat(surround('startup', begin, 30, 12000));
 
   // sunrise lapse
   var epoch  = 1425380400000;
@@ -55,13 +55,15 @@ function getExposures(){
     var today = new Date(todayAtSixAm);
 
     // sun positions
-    suncalc.getTimes(today, 42.3601, 71.0589);
+    var sc = suncalc.getTimes(today, 42.3601, 71.0589);
+
+    console.log(suncalc)
 
     // solar noon lapse
-    exposures = exposures.concat(surround('solarNoon', suncalc.solarNoon, 30, 12000));
+    exposures = exposures.concat(surround('solarNoon', sc.solarNoon, 30, 12000));
 
     // golden hour lapse
-    exposures = exposures.concat(surround('goldenHour', suncalc.goldenHour, 30, 12000));
+    exposures = exposures.concat(surround('goldenHour', sc.goldenHour, 30, 12000));
 
 
   }
@@ -213,3 +215,5 @@ GPhoto.list(function (list) {
   takeNextPicture({ name: 'test', ts: begin });
 
 });
+
+console.log(getExposures());
