@@ -57,6 +57,16 @@ function getExposures(){
 
 }
 
+/**
+ * Something bad happened.  Reboot the pi,
+ * no questions asked (hackers gonna hack)
+ */
+
+function reboot(){
+  winston.error('bad data detected. rebooting.')
+  require('reboot').reboot();
+}
+
 // List cameras / assign list item to variable to use below options
 GPhoto.list(function (list) {
   if (list.length === 0) return;
@@ -85,7 +95,7 @@ GPhoto.list(function (list) {
 
         if (err){
 
-          winston.info(err);
+          reboot();
 
         } else {
 
@@ -95,6 +105,7 @@ GPhoto.list(function (list) {
           winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
           if(fileSizeInBytes > 0.5){
+            reboot();
           }
 
           var imageStream = fs.createReadStream(imagePath);
