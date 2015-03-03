@@ -31,10 +31,10 @@ function getExposures(){
       outputSeconds = 30,
       frames = outputSeconds * 30,
       intervalSeconds = realSeconds / frames,
-      intervalMs = intervalSeconds * 1000;*/
+      intervalMs = intervalSeconds * 1000;
 
   for(var i = 0; i < 60; i++){
-    exposures.push(begin + (i * 30000));
+    exposures.push(begin + (i * 60000));
   }
 
   exposures.sort(function(a, b) {
