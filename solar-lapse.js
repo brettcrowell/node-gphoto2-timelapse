@@ -18,14 +18,17 @@ var GPhoto = new gphoto2.GPhoto2();
 
 var camera = null;
 
-function surround(timestamp, frames, msInterval){
+function surround(name, timestamp, frames, msInterval){
 
   var result = [];
 
   var msPreset = timestamp - ((frames / 2) * msInterval);
 
   for(var i = 0; i < frames; i++){
-    result.push(msPreset + (msInterval * i));
+    result.push({
+      name: name,
+      ts: msPreset + (msInterval * i)
+    });
   }
 
   return result;
@@ -36,6 +39,9 @@ function getExposures(){
 
   var exposures = [];
 
+  // shoot a second at startup, just in case that's all we get
+  exposures = exposures.concat(surround('startup', begin, 60, 12000));
+
   // sunrise lapse
   var epoch  = 1425380400000;
 
@@ -43,7 +49,7 @@ function getExposures(){
 
     // take a photo at 6am each day
     var todayAtSixAm = epoch + (i * 86400000);
-    exposures = exposures.concat(surround(todayAtSixAm, 30, 12000));
+    exposures = exposures.concat(surround('morning', todayAtSixAm, 30, 12000));
 
     // take a photo at solar noon each day
     var today = new Date(todayAtSixAm);
@@ -52,10 +58,10 @@ function getExposures(){
     suncalc.getTimes(today, 42.3601, 71.0589);
 
     // solar noon lapse
-    exposures = exposures.concat(surround(suncalc.solarNoon, 30, 12000));
+    exposures = exposures.concat(surround('solarNoon', suncalc.solarNoon, 30, 12000));
 
     // golden hour lapse
-    exposures = exposures.concat(surround(suncalc.goldenHour, 30, 12000));
+    exposures = exposures.concat(surround('goldenHour', suncalc.goldenHour, 30, 12000));
 
 
   }
@@ -109,11 +115,11 @@ GPhoto.list(function (list) {
    *
    * @param i The index of the photo, unique to session.
    */
-  var takePicture = function(i){
+  var takePicture = function(imageProps){
 
     camera.takePicture({download: true}, function (er, data) {
 
-      var imageFilename = 'picture' + i + '.jpg',
+      var imageFilename = imageProps.name + imageProps.ts + '.jpg',
           imageDirectory = __dirname + '/output',
           imagePath = imageDirectory + '/' + imageFilename;
 
@@ -175,15 +181,11 @@ GPhoto.list(function (list) {
    * @param skip Function must be 'primed'
    */
 
-  var takeNextPicture = function(skip){
+  var takeNextPicture = function(nextImage, skip){
 
     if(!skip){
-      // need to skip the priming call
-      // FIX THIS!!!
       winston.info('taking image ' + nextIndex);
-      takePicture(nextIndex);
-    } else {
-      takePicture('test');
+      takePicture(nextImage);
     }
 
     if(exposures.length > 0){
@@ -194,10 +196,12 @@ GPhoto.list(function (list) {
       while((nextImage = exposures.shift()) < currentTime){
         winston.info('skipping image ' + nextIndex);
         // skip any images that should have already been taken
-        nextIndex++;
       }
-      nextIndex++;
-      setTimeout(takeNextPicture, nextImage - currentTime);
+
+      setTimeout(function(){
+        takeNextPicture(nextImage);
+      }, nextImage.ts - currentTime);
+
       return;
 
     }
@@ -206,6 +210,6 @@ GPhoto.list(function (list) {
 
   }
 
-  takeNextPicture(true);
+  takeNextPicture({ name: 'test', ts: begin });
 
 });
