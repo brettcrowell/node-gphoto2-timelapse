@@ -72,7 +72,8 @@ GPhoto.list(function (list) {
 
   if (list.length === 0){
     // no cameras found?  not buying it.
-    reboot('no cameras found');
+    winston.error('no cameras found');
+    return;
   };
 
   camera = list[0];
@@ -101,7 +102,7 @@ GPhoto.list(function (list) {
 
         if (err){
 
-          reboot('error writing data to disk.');
+          //reboot('error writing data to disk');
 
         } else {
 
@@ -111,7 +112,7 @@ GPhoto.list(function (list) {
           winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
           if(fileSizeInBytes < 100000){
-            reboot('insufficient filesize detected');
+            winston.error('insufficient filesize detected');
           }
 
           var imageStream = fs.createReadStream(imagePath);
