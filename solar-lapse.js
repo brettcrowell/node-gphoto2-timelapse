@@ -8,6 +8,20 @@ var camera = null;
 
 var begin = new Date().getTime();
 
+function surround(timestamp, frames, interval){
+
+  var result = [];
+
+  var msPreset = timestamp - ((frames / 2) * interval);
+
+  for(var i = 0; i < frames; i++){
+    result.push(msPreset + (interval * i));
+  }
+
+  return result;
+
+}
+
 function getExposures(){
 
   var exposures = [];
@@ -28,6 +42,9 @@ function getExposures(){
   });
 
   return exposures;
+   */
+
+  return surround(1425347100000, 10, 10);
 
 }
 
