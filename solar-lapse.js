@@ -1,15 +1,19 @@
-var gphoto2 = require('gphoto2');
-var AWS = require('aws-sdk');
-var winston = require('winston');
+var gphoto2 = require('gphoto2'),
+    AWS = require('aws-sdk'),
+    fs = require('fs'),
+    winston = require('winston');
 
 var begin = new Date().getTime();
+
+if (!fs.existsSync('logs')){
+  fs.mkdirSync('logs');
+}
 
 winston.add(winston.transports.File, { filename: 'logs/' + begin + '.log' });
 
 winston.info('solar lapse is up and running at ' + begin);
 
 var GPhoto = new gphoto2.GPhoto2();
-var fs = require('fs');
 
 var camera = null;
 
@@ -65,7 +69,12 @@ GPhoto.list(function (list) {
     camera.takePicture({download: true}, function (er, data) {
 
       var imageFilename = 'picture' + i + '.jpg',
-          imagePath = __dirname + '/output/' + imageFilename;
+          imageDirectory = __dirname + '/output',
+          imagePath = imageDirectory + '/' + imageFilename;
+
+      if (!fs.existsSync(imageDirectory)){
+        fs.mkdirSync(imageDirectory);
+      }
 
       fs.writeFile(imagePath, data, function (err) {
 
