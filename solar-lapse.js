@@ -105,6 +105,8 @@ GPhoto.list(function (list) {
       // need to skip the priming call
       console.log('taking image ' + nextIndex);
       takePicture(nextIndex);
+    } else {
+      takePicture('test');
     }
 
     if(exposures.length > 0){
