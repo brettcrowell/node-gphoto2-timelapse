@@ -6,6 +6,8 @@ var begin = new Date().getTime();
 
 winston.add(winston.transports.File, { filename: begin + '.log' });
 
+winston.info('solar lapse is up and running at ' + begin);
+
 var GPhoto = new gphoto2.GPhoto2();
 var fs = require('fs');
 
@@ -55,7 +57,7 @@ function getExposures(){
 GPhoto.list(function (list) {
   if (list.length === 0) return;
   camera = list[0];
-  winston.log('Found', camera.model);
+  winston.info('Found', camera.model);
 
   // Take picture with camera object obtained from list()
   var takePicture = function(i){
@@ -69,7 +71,7 @@ GPhoto.list(function (list) {
 
         if (err){
 
-          winston.log(err);
+          winston.info(err);
 
         } else {
 
@@ -84,7 +86,7 @@ GPhoto.list(function (list) {
 
           s3.upload({ Body: imageStream}, function(err, data) {
             if (err) {
-              winston.log("Error uploading data: ", err);
+              winston.info("Error uploading data: ", err);
             } else {
               fs.unlink(imagePath);
             }
@@ -107,7 +109,7 @@ GPhoto.list(function (list) {
     if(!skip){
       // need to skip the priming call
       // FIX THIS!!!
-      winston.log('taking image ' + nextIndex);
+      winston.info('taking image ' + nextIndex);
       takePicture(nextIndex);
     } else {
       takePicture('test');
@@ -119,7 +121,7 @@ GPhoto.list(function (list) {
           nextImage;
 
       while((nextImage = exposures.shift()) < currentTime){
-        winston.log('skipping image ' + nextIndex);
+        winston.info('skipping image ' + nextIndex);
         // skip any images that should have already been taken
         nextIndex++;
       }
@@ -129,7 +131,7 @@ GPhoto.list(function (list) {
 
     }
 
-    winston.log('done');
+    winston.info('done');
 
   }
 
