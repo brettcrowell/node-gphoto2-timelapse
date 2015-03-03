@@ -70,13 +70,11 @@ function getExposures(){
   for(var i = 0; i < 60; i++){
     exposures.push(begin + (i * 60000));
   }
+  */
 
   exposures.sort(function(a, b) {
     return a - b;
   });
-
-  return exposures;
-   */
 
   return exposures;
 
