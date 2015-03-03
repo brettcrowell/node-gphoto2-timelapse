@@ -56,6 +56,10 @@ function getExposures(){
 
     exposures = exposures.concat(surround('noon', todayAtNoon, 30, 12000));
 
+    var todayAtSixThirtyPm = todayAtNoon + 23400000;
+
+    exposures = exposures.concat(surround('evening', todayAtSixThirtyPm, 30, 12000));
+
     // take a photo at solar noon each day
     //var today = new Date(todayAtSixAm);
 
@@ -85,6 +89,10 @@ function getExposures(){
 
   exposures = exposures.sort(function(a, b) {
     return a.ts - b.ts;
+  });
+
+  exposures = exposures.filter(function(e){
+    return e.ts > begin;
   });
 
   return exposures;
