@@ -69,8 +69,14 @@ function reboot(){
 
 // List cameras / assign list item to variable to use below options
 GPhoto.list(function (list) {
-  if (list.length === 0) return;
+
+  if (list.length === 0){
+    // no cameras found?  not buying it.
+    reboot();
+  };
+
   camera = list[0];
+
   winston.info('Found', camera.model);
 
   /**
@@ -104,7 +110,7 @@ GPhoto.list(function (list) {
 
           winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
-          if(fileSizeInBytes > 0.5){
+          if(fileSizeInMegabytes < 0.5){
             reboot();
           }
 
@@ -121,6 +127,7 @@ GPhoto.list(function (list) {
             if (err) {
               winston.info("Error uploading data: ", err);
             } else {
+              // only delete data if we're sure we've uploaded it to s3
               fs.unlink(imagePath);
             }
           });
