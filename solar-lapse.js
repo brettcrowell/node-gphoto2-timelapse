@@ -49,21 +49,24 @@ function getExposures(){
 
     // take a photo at 6am each day
     var todayAtSixAm = epoch + (i * 86400000);
+
     exposures = exposures.concat(surround('morning', todayAtSixAm, 30, 12000));
 
+    var todayAtNoon = todayAtSixAm + 23400000;
+
+    exposures = exposures.concat(surround('noon', todayAtNoon, 30, 12000));
+
     // take a photo at solar noon each day
-    var today = new Date(todayAtSixAm);
+    //var today = new Date(todayAtSixAm);
 
     // sun positions
-    var sc = suncalc.getTimes(today, 42.3601, 71.0589);
-
-    console.log(suncalc)
+    //var sc = suncalc.getTimes(today, 42.3601, 71.0589);
 
     // solar noon lapse
-    exposures = exposures.concat(surround('solarNoon', sc.solarNoon, 30, 12000));
+    //exposures = exposures.concat(surround('solarNoon', sc.solarNoon, 30, 12000));
 
     // golden hour lapse
-    exposures = exposures.concat(surround('goldenHour', sc.goldenHour, 30, 12000));
+    //exposures = exposures.concat(surround('goldenHour', sc.goldenHour, 30, 12000));
 
 
   }
@@ -195,8 +198,8 @@ GPhoto.list(function (list) {
       var currentTime = new Date().getTime(),
           nextImage;
 
-      while((nextImage = exposures.shift()) < currentTime){
-        winston.info('skipping image ' + nextIndex);
+      while((nextImage = exposures.shift()).ts < currentTime){
+        winston.info('skipping image at ' + nextImage.ts);
         // skip any images that should have already been taken
       }
 
@@ -215,5 +218,3 @@ GPhoto.list(function (list) {
   takeNextPicture({ name: 'test', ts: begin });
 
 });
-
-console.log(getExposures());
