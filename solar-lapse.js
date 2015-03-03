@@ -63,7 +63,12 @@ GPhoto.list(function (list) {
   camera = list[0];
   winston.info('Found', camera.model);
 
-  // Take picture with camera object obtained from list()
+  /**
+   * Use node-gphoto2 to capture an image from the active camera
+   * and upload to Amazon S3
+   *
+   * @param i The index of the photo, unique to session.
+   */
   var takePicture = function(i){
 
     camera.takePicture({download: true}, function (er, data) {
@@ -112,6 +117,13 @@ GPhoto.list(function (list) {
   // fake two shots
   var exposures = getExposures();
   var nextIndex = 0;
+
+  /**
+   * Recursive function which reads a list of exposure times
+   * (in ms) and calls for a photo to be taken at each
+   *
+   * @param skip Function must be 'primed'
+   */
 
   var takeNextPicture = function(skip){
 
