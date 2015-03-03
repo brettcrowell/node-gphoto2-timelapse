@@ -184,7 +184,7 @@ GPhoto.list(function (list) {
   var takeNextPicture = function(nextImage, skip){
 
     if(!skip){
-      winston.info('taking image ' + nextIndex);
+      winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
       takePicture(nextImage);
     }
 
