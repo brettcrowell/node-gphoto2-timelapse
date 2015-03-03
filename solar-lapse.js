@@ -83,7 +83,7 @@ function getExposures(){
   }
   */
 
-  exposures.sort(function(a, b) {
+  exposures = exposures.sort(function(a, b) {
     return a - b;
   });
 
