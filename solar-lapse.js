@@ -4,7 +4,7 @@ var winston = require('winston');
 
 var begin = new Date().getTime();
 
-winston.add(winston.transports.File, { filename: begin + '.log' });
+winston.add(winston.transports.File, { filename: 'logs/' + begin + '.log' });
 
 winston.info('solar lapse is up and running at ' + begin);
 
