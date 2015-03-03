@@ -92,7 +92,7 @@ GPhoto.list(function (list) {
           var fileSizeInBytes = fs.statSync(imagePath)["size"],
               fileSizeInMegabytes = fileSizeInBytes / 1000000.0
 
-          winston('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
+          winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
           if(fileSizeInBytes > 0.5){
           }
