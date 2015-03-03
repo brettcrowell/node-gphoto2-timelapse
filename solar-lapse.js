@@ -73,8 +73,6 @@ GPhoto.list(function (list) {
 
     camera.takePicture({download: true}, function (er, data) {
 
-      winston.log(data.size, 'bytes of data captured');
-
       var imageFilename = 'picture' + i + '.jpg',
           imageDirectory = __dirname + '/output',
           imagePath = imageDirectory + '/' + imageFilename;
@@ -90,6 +88,14 @@ GPhoto.list(function (list) {
           winston.info(err);
 
         } else {
+
+          var fileSizeInBytes = fs.statSync(imagePath)["size"],
+              fileSizeInMegabytes = fileSizeInBytes / 1000000.0
+
+          winston('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
+
+          if(fileSizeInBytes > 0.5){
+          }
 
           var imageStream = fs.createReadStream(imagePath);
 
