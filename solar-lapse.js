@@ -73,6 +73,8 @@ GPhoto.list(function (list) {
 
     camera.takePicture({download: true}, function (er, data) {
 
+      winston.log(data.length, 'bytes of data captured');
+
       var imageFilename = 'picture' + i + '.jpg',
           imageDirectory = __dirname + '/output',
           imagePath = imageDirectory + '/' + imageFilename;
