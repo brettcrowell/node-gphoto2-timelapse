@@ -50,7 +50,11 @@ function getExposures(){
     // take a photo at 6am each day
     var todayAtSixAm = epoch + (i * 86400000);
 
-    exposures = exposures.concat(surround('morning', todayAtSixAm, 30, 12000));
+    exposures = exposures.concat(surround('sunrise', todayAtSixAm, 30, 12000));
+
+    var todayAtNineAm = todayAtSixAm + 10800000;
+
+    exposures = exposures.concat(surround('morning', todayAtNineAm, 30, 12000));
 
     var todayAtNoon = todayAtSixAm + 23400000;
 
