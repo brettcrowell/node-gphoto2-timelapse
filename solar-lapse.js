@@ -100,13 +100,12 @@ function getExposures(){
 }
 
 /**
- * Something bad happened.  Reboot the pi,
- * no questions asked (hackers gonna hack)
+ * Something bad happened.  Ask the operating system to
+ * reset all USB connections to see if we can fix it.
  */
 
 function reboot(reason){
   winston.error(reason + ': rebooting');
-  require('reboot').reboot();
 }
 
 // List cameras / assign list item to variable to use below options
@@ -114,7 +113,7 @@ GPhoto.list(function (list) {
 
   if (list.length === 0){
     // no cameras found?  not buying it.
-    winston.error('no cameras found');
+    reboot('no cameras found');
     return;
   };
 
@@ -154,7 +153,7 @@ GPhoto.list(function (list) {
           winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
           if(fileSizeInBytes < 100000){
-            winston.error('insufficient filesize detected');
+            reboot('insufficient filesize detected');
           }
 
           var imageStream = fs.createReadStream(imagePath);
@@ -191,15 +190,14 @@ GPhoto.list(function (list) {
    * Recursive function which reads a list of exposure times
    * (in ms) and calls for a photo to be taken at each
    *
-   * @param skip Function must be 'primed'
+   * @param nextImage Image properties, must include name & timestamp (ts)
    */
 
-  var takeNextPicture = function(nextImage, skip){
+  var takeNextPicture = function(nextImage){
 
-    if(!skip){
-      winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
-      takePicture(nextImage);
-    }
+    winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
+
+    takePicture(nextImage);
 
     if(exposures.length > 0){
 
