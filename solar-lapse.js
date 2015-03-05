@@ -133,10 +133,14 @@ function resetUsb(reason){
  * @param imageProps Image metadata including name and timestamp (ts)
  */
 
+<<<<<<< HEAD
+=======
+function takePicture(imageProps){
+>>>>>>> global-camera
 
   // keep a callback in case something goes wrong
   var callback = function(){
-    takePicture(camera, imageProps);
+    takePicture(imageProps);
   };
 function takePicture(camera, imageProps){
 
@@ -227,11 +231,11 @@ function takePicture(camera, imageProps){
  * @param nextImage Image properties, must include name & timestamp (ts)
  */
 
-var takeNextPicture = function(camera, nextImage){
+var takeNextPicture = function(nextImage){
 
   winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
 
-  takePicture(camera, nextImage);
+  takePicture(nextImage);
 
   if(exposures.length > 0){
 
@@ -244,7 +248,7 @@ var takeNextPicture = function(camera, nextImage){
     }
 
     setTimeout(function(){
-      takeNextPicture(camera, nextImage);
+      takeNextPicture(nextImage);
     }, nextImage.ts - currentTime);
 
     return;
@@ -271,4 +275,4 @@ winston.info('solar lapse is up and running at ' + now);
 // fake two shots
 exposures = getExposures(now);
 
-takeNextPicture(camera, { name: 'test', bucket: now, ts: now });
+takeNextPicture({ name: 'test', bucket: now, ts: now });
