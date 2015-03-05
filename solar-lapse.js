@@ -6,23 +6,30 @@ fs = require('fs');
 winston = require('winston');
 
 /**
+ * Takes in a timestamp (+ other metadata), a number of frames,
+ * and a capture interval, and evenly distributes exposures around
+ * the timestamp
  *
- * @param name
- * @param timestamp
- * @param frames
- * @param msInterval
+ * @param name  The name for this group of exposures
+ * @param bucket  The S3 bucket the exposures should be placed into
+ * @param timestamp The central timestamp for this exposure group
+ * @param frames  The number of frames to encode
+ * @param msInterval  The requested delay between frames
  * @returns {Array}
  */
 
-function surround(name, timestamp, frames, msInterval){
+function surround(name, bucket, timestamp, frames, msInterval){
 
   var result = [];
+
+  var now = new Date().getTime();
 
   var msPreset = timestamp - ((frames / 2) * msInterval);
 
   for(var i = 0; i < frames; i++){
     result.push({
       name: name,
+      bucket: bucket,
       ts: msPreset + (msInterval * i)
     });
   }
@@ -32,17 +39,19 @@ function surround(name, timestamp, frames, msInterval){
 }
 
 /**
- *
- * @param begin
+ * Creates a list of exposures based on custom criteria
+ * @param bucket The name of the bucket to place images into
  * @returns {Array}
  */
 
-function getExposures(begin){
+function getExposures(bucket){
 
   var exposures = [];
 
+  var now = new Date().getTime();
+
   // shoot a second at startup, just in case that's all we get
-  exposures = exposures.concat(surround('startup', begin, 30, 12000));
+  exposures = exposures.concat(surround('startup', bucket, now, 30, 12000));
 
   // sunrise lapse
   var epoch  = 1425380400000;
@@ -52,19 +61,19 @@ function getExposures(begin){
     // take a photo at 6am each day
     var todayAtSixAm = epoch + (i * 86400000);
 
-    exposures = exposures.concat(surround('sunrise', todayAtSixAm, 30, 12000));
+    exposures = exposures.concat(surround('sunrise', bucket, todayAtSixAm, 30, 12000));
 
     var todayAtNineAm = todayAtSixAm + 10800000;
 
-    exposures = exposures.concat(surround('morning', todayAtNineAm, 30, 12000));
+    exposures = exposures.concat(surround('morning', bucket, todayAtNineAm, 30, 12000));
 
     var todayAtNoon = todayAtSixAm + 23400000;
 
-    exposures = exposures.concat(surround('noon', todayAtNoon, 30, 12000));
+    exposures = exposures.concat(surround('noon', bucket, todayAtNoon, 30, 12000));
 
     var todayAtSixThirtyPm = todayAtNoon + 23400000;
 
-    exposures = exposures.concat(surround('evening', todayAtSixThirtyPm, 30, 12000));
+    exposures = exposures.concat(surround('evening', bucket, todayAtSixThirtyPm, 30, 12000));
 
     // take a photo at solar noon each day
     //var today = new Date(todayAtSixAm);
@@ -98,7 +107,7 @@ function getExposures(begin){
   });
 
   exposures = exposures.filter(function(e){
-    return e.ts > begin;
+    return e.ts > now;
   });
 
   return exposures;
@@ -248,19 +257,19 @@ var takeNextPicture = function(camera, nextImage){
 }
 
 // 'local' variables
-var begin, camera, exposures;
+var camera, exposures;
 
-begin = new Date().getTime();
+var now = new Date().getTime();
 
 if (!fs.existsSync('logs')){
   fs.mkdirSync('logs');
 }
 
-winston.add(winston.transports.File, { filename: 'logs/' + begin + '.log' });
+winston.add(winston.transports.File, { filename: 'logs/' + now + '.log' });
 
-winston.info('solar lapse is up and running at ' + begin);
+winston.info('solar lapse is up and running at ' + now);
 
 // fake two shots
-exposures = getExposures(begin);
+exposures = getExposures(now);
 
-takeNextPicture(camera, { name: 'test', bucket: begin, ts: begin });
+takeNextPicture(camera, { name: 'test', bucket: now, ts: now });
