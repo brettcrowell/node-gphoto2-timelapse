@@ -1,4 +1,4 @@
-var gphoto2 = require('gphoto2'),
+var gphoto2 = null,
     AWS = require('aws-sdk'),
     fs = require('fs'),
     winston = require('winston'),
@@ -13,8 +13,6 @@ if (!fs.existsSync('logs')){
 winston.add(winston.transports.File, { filename: 'logs/' + begin + '.log' });
 
 winston.info('solar lapse is up and running at ' + begin);
-
-var GPhoto = new gphoto2.GPhoto2();
 
 var camera = null;
 
@@ -108,123 +106,143 @@ function getExposures(){
  * reset all USB connections to see if we can fix it.
  */
 
-function reboot(reason){
+function resetUsb(reason){
+  camera = null;
+  gphoto2 = null;
   winston.error(reason + ': rebooting');
 }
 
-// List cameras / assign list item to variable to use below options
-GPhoto.list(function (list) {
+/**
+ * Use node-gphoto2 to capture an image from the active camera
+ * and upload to Amazon S3
+ *
+ * @param imageProps Image metadata including name and timestamp (ts)
+ */
 
-  if (list.length === 0){
-    // no cameras found?  not buying it.
-    reboot('no cameras found');
-    return;
+function takePicture(imageProps){
+
+  // keep a callback in case something goes wrong
+  var callback = function(){
+    takePicture(imageProps);
   };
 
-  camera = list[0];
+  if(!camera){
 
-  winston.info('Found', camera.model);
+    gphoto2 = require('gphoto2');
+    var GPhoto = new gphoto2.GPhoto2();
 
-  /**
-   * Use node-gphoto2 to capture an image from the active camera
-   * and upload to Amazon S3
-   *
-   * @param i The index of the photo, unique to session.
-   */
-  var takePicture = function(imageProps){
+    // List cameras / assign list item to variable to use below options
+    GPhoto.list(function (list) {
 
-    camera.takePicture({download: true}, function (er, data) {
-
-      var imageFilename = imageProps.name + imageProps.ts + '.jpg',
-          imageDirectory = __dirname + '/output',
-          imagePath = imageDirectory + '/' + imageFilename;
-
-      if (!fs.existsSync(imageDirectory)){
-        fs.mkdirSync(imageDirectory);
+      if (list.length === 0) {
+        // no cameras found?  not buying it.
+        resetUsb('no cameras found', callback);
+        return;
       }
 
-      fs.writeFile(imagePath, data, function (err) {
+      camera = list[0];
 
-        if (err){
+      winston.info('Found', camera.model);
 
-          //reboot('error writing data to disk');
-
-        } else {
-
-          var fileSizeInBytes = fs.statSync(imagePath)["size"],
-              fileSizeInMegabytes = fileSizeInBytes / 1000000.0
-
-          winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
-
-          if(fileSizeInBytes < 100000){
-            reboot('insufficient filesize detected');
-          }
-
-          var imageStream = fs.createReadStream(imagePath);
-
-          var s3 = new AWS.S3({
-            params: {
-              Bucket: 'bc-timelapse',
-              Key: begin + "/" + imageFilename
-            }
-          });
-
-          s3.upload({ Body: imageStream}, function(err, data) {
-            if (err) {
-              winston.info("Error uploading data: ", err);
-            } else {
-              // only delete data if we're sure we've uploaded it to s3
-              fs.unlink(imagePath);
-            }
-          });
-
-        }
-
-      });
+      // take the picture as a callback
+      callback();
 
     });
 
-  };
-
-  // fake two shots
-  var exposures = getExposures();
-  var nextIndex = 0;
-
-  /**
-   * Recursive function which reads a list of exposure times
-   * (in ms) and calls for a photo to be taken at each
-   *
-   * @param nextImage Image properties, must include name & timestamp (ts)
-   */
-
-  var takeNextPicture = function(nextImage){
-
-    winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
-
-    takePicture(nextImage);
-
-    if(exposures.length > 0){
-
-      var currentTime = new Date().getTime(),
-          nextImage;
-
-      while((nextImage = exposures.shift()).ts < currentTime){
-        winston.info('skipping image ' + nextImage.name + nextImage.ts);
-        // skip any images that should have already been taken
-      }
-
-      setTimeout(function(){
-        takeNextPicture(nextImage);
-      }, nextImage.ts - currentTime);
-
-      return;
-
-    }
-
-    winston.info('done');
+    return;
 
   }
 
-  takeNextPicture({ name: 'test', ts: begin });
+  camera.takePicture({download: true}, function (er, data) {
 
-});
+    var imageFilename = imageProps.name + imageProps.ts + '.jpg',
+        imageDirectory = __dirname + '/output',
+        imagePath = imageDirectory + '/' + imageFilename;
+
+    if (!fs.existsSync(imageDirectory)){
+      fs.mkdirSync(imageDirectory);
+    }
+
+    fs.writeFile(imagePath, data, function (err) {
+
+      if (err){
+
+        //resetUsb('error writing data to disk');
+
+      } else {
+
+        var fileSizeInBytes = fs.statSync(imagePath)["size"],
+            fileSizeInMegabytes = fileSizeInBytes / 1000000.0
+
+        winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
+
+        if(fileSizeInBytes < 100000){
+          resetUsb('insufficient filesize detected', callback);
+        }
+
+        var imageStream = fs.createReadStream(imagePath);
+
+        var s3 = new AWS.S3({
+          params: {
+            Bucket: 'bc-timelapse',
+            Key: begin + "/" + imageFilename
+          }
+        });
+
+        s3.upload({ Body: imageStream}, function(err, data) {
+          if (err) {
+            winston.info("Error uploading data: ", err);
+          } else {
+            // only delete data if we're sure we've uploaded it to s3
+            fs.unlink(imagePath);
+          }
+        });
+
+      }
+
+    });
+
+  });
+
+}
+
+// fake two shots
+var exposures = getExposures();
+var nextIndex = 0;
+
+/**
+ * Recursive function which reads a list of exposure times
+ * (in ms) and calls for a photo to be taken at each
+ *
+ * @param nextImage Image properties, must include name & timestamp (ts)
+ */
+
+var takeNextPicture = function(nextImage){
+
+  winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
+
+  takePicture(nextImage);
+
+  if(exposures.length > 0){
+
+    var currentTime = new Date().getTime(),
+        nextImage;
+
+    while((nextImage = exposures.shift()).ts < currentTime){
+      winston.info('skipping image ' + nextImage.name + nextImage.ts);
+      // skip any images that should have already been taken
+    }
+
+    setTimeout(function(){
+      takeNextPicture(nextImage);
+    }, nextImage.ts - currentTime);
+
+    return;
+
+  }
+
+  winston.info('done');
+
+}
+
+takeNextPicture({ name: 'test', ts: begin });
