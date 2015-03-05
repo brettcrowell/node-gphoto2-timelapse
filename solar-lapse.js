@@ -133,16 +133,12 @@ function resetUsb(reason){
  * @param imageProps Image metadata including name and timestamp (ts)
  */
 
-<<<<<<< HEAD
-=======
 function takePicture(imageProps){
->>>>>>> global-camera
 
   // keep a callback in case something goes wrong
   var callback = function(){
     takePicture(imageProps);
   };
-function takePicture(camera, imageProps){
 
   if(!camera){
 
