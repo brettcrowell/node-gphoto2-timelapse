@@ -121,10 +121,11 @@ function resetUsb(reason){
  * and upload to Amazon S3
  *
  * @param camera  An instance of a GPhoto2 camera
+ * @param bucket  The name of the AWS-S3 bucket this image should be uploaded to
  * @param imageProps Image metadata including name and timestamp (ts)
  */
 
-function takePicture(camera, imageProps){
+function takePicture(camera, bucket, imageProps){
 
   // keep a callback in case something goes wrong
   var callback = function(){
@@ -190,7 +191,7 @@ function takePicture(camera, imageProps){
         var s3 = new aws.S3({
           params: {
             Bucket: 'bc-timelapse',
-            Key: begin + "/" + imageFilename
+            Key: imageProps.bucket + "/" + imageFilename
           }
         });
 
@@ -262,4 +263,4 @@ winston.info('solar lapse is up and running at ' + begin);
 // fake two shots
 exposures = getExposures(begin);
 
-takeNextPicture(camera, { name: 'test', ts: begin });
+takeNextPicture(camera, { name: 'test', bucket: begin, ts: begin });
