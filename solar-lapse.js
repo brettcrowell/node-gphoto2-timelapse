@@ -130,15 +130,14 @@ function resetUsb(reason){
  * and upload to Amazon S3
  *
  * @param camera  An instance of a GPhoto2 camera
- * @param bucket  The name of the AWS-S3 bucket this image should be uploaded to
  * @param imageProps Image metadata including name and timestamp (ts)
  */
 
-function takePicture(camera, bucket, imageProps){
+function takePicture(imageProps){
 
   // keep a callback in case something goes wrong
   var callback = function(){
-    takePicture(camera, imageProps);
+    takePicture(imageProps);
   };
 
   if(!camera){
@@ -228,11 +227,11 @@ function takePicture(camera, bucket, imageProps){
  * @param nextImage Image properties, must include name & timestamp (ts)
  */
 
-var takeNextPicture = function(camera, nextImage){
+var takeNextPicture = function(nextImage){
 
   winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
 
-  takePicture(camera, nextImage);
+  takePicture(nextImage);
 
   if(exposures.length > 0){
 
@@ -245,7 +244,7 @@ var takeNextPicture = function(camera, nextImage){
     }
 
     setTimeout(function(){
-      takeNextPicture(camera, nextImage);
+      takeNextPicture(nextImage);
     }, nextImage.ts - currentTime);
 
     return;
@@ -272,4 +271,4 @@ winston.info('solar lapse is up and running at ' + now);
 // fake two shots
 exposures = getExposures(now);
 
-takeNextPicture(camera, { name: 'test', bucket: now, ts: now });
+takeNextPicture({ name: 'test', bucket: now, ts: now });
