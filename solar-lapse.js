@@ -1,20 +1,18 @@
-var gphoto2 = null,
-    AWS = require('aws-sdk'),
-    fs = require('fs'),
-    winston = require('winston'),
-    suncalc = require('suncalc');
+var gphoto2, aws, fs, winston;
 
-var begin = new Date().getTime();
+// prepare global requirements
+aws = require('aws-sdk');
+fs = require('fs');
+winston = require('winston');
 
-if (!fs.existsSync('logs')){
-  fs.mkdirSync('logs');
-}
-
-winston.add(winston.transports.File, { filename: 'logs/' + begin + '.log' });
-
-winston.info('solar lapse is up and running at ' + begin);
-
-var camera = null;
+/**
+ *
+ * @param name
+ * @param timestamp
+ * @param frames
+ * @param msInterval
+ * @returns {Array}
+ */
 
 function surround(name, timestamp, frames, msInterval){
 
@@ -33,7 +31,13 @@ function surround(name, timestamp, frames, msInterval){
 
 }
 
-function getExposures(){
+/**
+ *
+ * @param begin
+ * @returns {Array}
+ */
+
+function getExposures(begin){
 
   var exposures = [];
 
@@ -116,14 +120,15 @@ function resetUsb(reason){
  * Use node-gphoto2 to capture an image from the active camera
  * and upload to Amazon S3
  *
+ * @param camera  An instance of a GPhoto2 camera
  * @param imageProps Image metadata including name and timestamp (ts)
  */
 
-function takePicture(imageProps){
+function takePicture(camera, imageProps){
 
   // keep a callback in case something goes wrong
   var callback = function(){
-    takePicture(imageProps);
+    takePicture(camera, imageProps);
   };
 
   if(!camera){
@@ -182,7 +187,7 @@ function takePicture(imageProps){
 
         var imageStream = fs.createReadStream(imagePath);
 
-        var s3 = new AWS.S3({
+        var s3 = new aws.S3({
           params: {
             Bucket: 'bc-timelapse',
             Key: begin + "/" + imageFilename
@@ -204,11 +209,7 @@ function takePicture(imageProps){
 
   });
 
-}
-
-// fake two shots
-var exposures = getExposures();
-var nextIndex = 0;
+};
 
 /**
  * Recursive function which reads a list of exposure times
@@ -217,11 +218,11 @@ var nextIndex = 0;
  * @param nextImage Image properties, must include name & timestamp (ts)
  */
 
-var takeNextPicture = function(nextImage){
+var takeNextPicture = function(camera, nextImage){
 
   winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
 
-  takePicture(nextImage);
+  takePicture(camera, nextImage);
 
   if(exposures.length > 0){
 
@@ -234,7 +235,7 @@ var takeNextPicture = function(nextImage){
     }
 
     setTimeout(function(){
-      takeNextPicture(nextImage);
+      takeNextPicture(camera, nextImage);
     }, nextImage.ts - currentTime);
 
     return;
@@ -245,4 +246,20 @@ var takeNextPicture = function(nextImage){
 
 }
 
-takeNextPicture({ name: 'test', ts: begin });
+// 'local' variables
+var begin, camera, exposures;
+
+begin = new Date().getTime();
+
+if (!fs.existsSync('logs')){
+  fs.mkdirSync('logs');
+}
+
+winston.add(winston.transports.File, { filename: 'logs/' + begin + '.log' });
+
+winston.info('solar lapse is up and running at ' + begin);
+
+// fake two shots
+exposures = getExposures(begin);
+
+takeNextPicture(camera, { name: 'test', ts: begin });
