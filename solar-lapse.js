@@ -130,16 +130,15 @@ function resetUsb(reason){
  * and upload to Amazon S3
  *
  * @param camera  An instance of a GPhoto2 camera
- * @param bucket  The name of the AWS-S3 bucket this image should be uploaded to
  * @param imageProps Image metadata including name and timestamp (ts)
  */
 
-function takePicture(camera, bucket, imageProps){
 
   // keep a callback in case something goes wrong
   var callback = function(){
     takePicture(camera, imageProps);
   };
+function takePicture(camera, imageProps){
 
   if(!camera){
 
