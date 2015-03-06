@@ -21,6 +21,7 @@
     "gphoto2": "^0.1.7",
     "reboot": "0.0.1",
     "suncalc": "^1.6.0",
+    "usb": "^1.0.5",
     "winston": "^0.9.0"
   },
   "devDependencies": {

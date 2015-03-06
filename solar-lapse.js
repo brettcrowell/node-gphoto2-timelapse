@@ -1,4 +1,4 @@
-var gphoto2, aws, fs, winston;
+var gphoto2, aws, fs, usb, winston;
 
 // prepare global requirements
 aws = require('aws-sdk');
@@ -119,10 +119,28 @@ function getExposures(bucket){
  * reset all USB connections to see if we can fix it.
  */
 
-function resetUsb(reason){
+function resetUsb(reason, callback){
   camera = null;
   gphoto2 = null;
   winston.error(reason + ': rebooting');
+
+  usb = require('usb');
+
+  var c = usb.findByIds(1200, 810);
+
+  if(c){
+
+    // try to reset the usb connection
+    c.open();
+    c.reset(callback);
+
+  } else {
+
+    // crash if we can't get going again
+    process.exit(1);
+
+  }
+
 }
 
 /**
