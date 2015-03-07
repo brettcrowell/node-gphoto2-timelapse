@@ -62,8 +62,6 @@ function getExposures(bucket){
     // take a photo at 6am each day
     var todayAtSixAm = epoch + (i * 86400000);
 
-    exposures = exposures.concat(surround('sunrise', bucket, todayAtSixAm, 30, 12000));
-
     var todayAtNineAm = todayAtSixAm + 10800000;
 
     exposures = exposures.concat(surround('morning', bucket, todayAtNineAm, 30, 12000));
@@ -82,8 +80,8 @@ function getExposures(bucket){
     // sun positions
     var sc = suncalc.getTimes(today, 42.3601, -71.0589);
 
-    // solar noon lapse
-    exposures = exposures.concat(surround('solarNoon', bucket, sc.solarNoon.getTime(), 30, 12000));
+    // sunrise lapse
+    exposures = exposures.concat(surround('sunrise', bucket, sc.sunrise.getTime(), 30, 12000));
 
     // golden hour lapse
     exposures = exposures.concat(surround('goldenHour', bucket, sc.goldenHour, 30, 12000));
