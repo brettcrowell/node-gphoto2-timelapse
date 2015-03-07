@@ -133,6 +133,7 @@ Timelapse.prototype = {
 
           if(fileSizeInBytes < 100000){
             self.resetUsb('insufficient filesize detected', callback);
+            return;
           }
 
           var imageStream = self.libs.fs.createReadStream(imagePath);
