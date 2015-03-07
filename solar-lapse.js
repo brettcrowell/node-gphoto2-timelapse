@@ -83,6 +83,12 @@ Timelapse.prototype = {
 
     if(!this.camera){
 
+      /*
+        no camera was detected.  this is probably the first exposure in the series,
+        but may be a crash recovery.  either way, re-instantiate GPhoto2 and try to
+        find a camera to use.  Since this is an async process, need to provide a callback.
+       */
+
       this.libs.gphoto2 = require('gphoto2');
       var GPhoto = new this.libs.gphoto2.GPhoto2();
 
@@ -108,7 +114,14 @@ Timelapse.prototype = {
 
     }
 
+    // no camera problems if we've made it here, take a photo
+
     this.camera.takePicture({download: true}, function (er, data) {
+
+      /*
+        image data returned from the camera.  check to make sure that it wasn't 'bad data' (anything under 100kb)
+        and if all is good, upload it to Amazon S3 and delete from local output directory.
+       */
 
       var imageFilename = imageProps.name + imageProps.ts + '.jpg',
           imageDirectory = __dirname + '/output',
