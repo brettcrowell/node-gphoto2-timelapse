@@ -8,7 +8,7 @@ var Timelapse = function(s3bucket){
     aws: require('aws-sdk'),
     fs: require('fs'),
     winston: require('winston'),
-    simplex: require('./clock.js')
+    sequence: require('./sequence.js')
     
   }
 
@@ -25,7 +25,7 @@ var Timelapse = function(s3bucket){
   this.libs.winston.info('solar lapse is up and running at ' + this.bucketName);
 
   // fake two shots
-  this.exposures = new this.libs.simplex.Clock(now);
+  this.exposures = new this.libs.sequence.Sequence(now);
 
   // @todo: future support for separting photos into buckets dynamically
   this.takeNextPicture({ name: 'test', bucket: this.bucketName, ts: now });

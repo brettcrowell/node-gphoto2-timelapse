@@ -6,7 +6,7 @@ var suncalc = require('suncalc');
  * @returns {Array}
  */
 
-var Clock = function(bucket){
+var Sequence = function(bucket){
 
   this.exposures = [];
 
@@ -72,7 +72,7 @@ var Clock = function(bucket){
 
 }
 
-Clock.prototype = {
+Sequence.prototype = {
 
   getNextImage: function(){
 
@@ -129,4 +129,4 @@ Clock.prototype = {
 
 };
 
-module.exports.Clock = Clock;
+module.exports.Sequence = Sequence;
