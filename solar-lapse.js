@@ -1,9 +1,10 @@
-var gphoto2, aws, fs, usb, winston;
+var gphoto2, aws, fs, usb, winston, suncalc;
 
 // prepare global requirements
 aws = require('aws-sdk');
 fs = require('fs');
 winston = require('winston');
+suncalc = require('suncalc');
 
 /**
  * Takes in a timestamp (+ other metadata), a number of frames,
@@ -76,17 +77,17 @@ function getExposures(bucket){
     exposures = exposures.concat(surround('evening', bucket, todayAtSixThirtyPm, 30, 12000));
 
     // take a photo at solar noon each day
-    //var today = new Date(todayAtSixAm);
+    var today = new Date(todayAtSixAm);
 
     // sun positions
-    //var sc = suncalc.getTimes(today, 42.3601, 71.0589);
+    var sc = suncalc.getTimes(today, 42.3601, -71.0589);
 
     // solar noon lapse
-    //exposures = exposures.concat(surround('solarNoon', sc.solarNoon, 30, 12000));
+    exposures = exposures.concat(surround('solarNoon', bucket, sc.solarNoon.getTime(), 30, 12000));
 
     // golden hour lapse
-    //exposures = exposures.concat(surround('goldenHour', sc.goldenHour, 30, 12000));
-
+    exposures = exposures.concat(surround('goldenHour', bucket, sc.goldenHour, 30, 12000));
+    
 
   }
 
