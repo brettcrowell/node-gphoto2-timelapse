@@ -1,34 +1,35 @@
-var Timelapse = function(s3bucket){
+/**
+ * A tool for creating timelapses with GPhoto2 and Node.JS
+ * @param sequence
+ * @constructor
+ */
+
+var Timelapse = function(exposureSeq){
 
   var now = new Date().getTime();
   
   this.libs = {
 
-    tgphoto2: undefined,
+    gphoto2: undefined,
     aws: require('aws-sdk'),
     fs: require('fs'),
     winston: require('winston'),
-    sequence: require('./sequence.js')
+    seq: require('./sequence.js')
     
   }
 
   this.camera = undefined;
-  this.exposures = [];
-  this.bucketName = s3bucket || now;
+  this.sequence = (exposureSeq.length > 0) ? new this.libs.seq.Sequence(exposureSeq) : exposureSeq;
 
   if (!this.libs.fs.existsSync('logs')){
     this.libs.fs.mkdirSync('logs');
   }
 
   this.libs.winston.add(this.libs.winston.transports.File, { filename: 'logs/' + now + '.log' });
-
-  this.libs.winston.info('solar lapse is up and running at ' + this.bucketName);
-
-  // fake two shots
-  this.exposures = new this.libs.sequence.Sequence(now);
+  this.libs.winston.info('solar lapse is up and running at ' + now);
 
   // @todo: future support for separting photos into buckets dynamically
-  this.takeNextPicture({ name: 'test', bucket: this.bucketName, ts: now });
+  this.takeNextPicture({ name: 'test', bucket: now, ts: now });
 
 };
 
@@ -190,10 +191,10 @@ Timelapse.prototype = {
 
       this.takePicture(nextImage);
 
-      if(this.exposures.hasMoreImages()){
+      if(this.sequence.hasMoreImages()){
 
         var currentTime = new Date().getTime(),
-            nextImage = this.exposures.getNextImage();
+            nextImage = this.sequence.getNextImage();
 
         setTimeout(function(){
 
@@ -212,4 +213,4 @@ Timelapse.prototype = {
 
 };
 
-new Timelapse();
+module.exports.Timelapse = Timelapse;
