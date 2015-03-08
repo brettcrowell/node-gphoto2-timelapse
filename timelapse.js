@@ -29,7 +29,7 @@ var Timelapse = function(exposureSeq){
   this.libs.winston.info('solar lapse is up and running at ' + now);
 
   // @todo: future support for separting photos into buckets dynamically
-  this.takeNextPicture({ name: 'test', bucket: now, ts: now });
+  this.takeNextPicture();
 
 };
 
@@ -187,9 +187,12 @@ Timelapse.prototype = {
 
       var self = this;
 
-      this.libs.winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
+      if(nextImage){
 
-      this.takePicture(nextImage);
+        this.libs.winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
+        this.takePicture(nextImage);
+
+      }
 
       if(this.sequence.hasMoreImages()){
 
