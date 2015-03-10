@@ -162,27 +162,48 @@ Timelapse.prototype = {
             return;
           }
 
-          var imageStream = self.libs.fs.createReadStream(imagePath);
-
-          var s3 = new self.libs.aws.S3({
-            params: {
-              Bucket: 'bc-timelapse',
-              Key: imageProps.bucket + "/" + imageFilename
-            }
-          });
-
-          s3.upload({ Body: imageStream}, function(err, data) {
-            if (err) {
-              self.libs.winston.info("Error uploading data: ", err);
-            } else {
-              // only delete data if we're sure we've uploaded it to s3
-              self.libs.fs.unlink(imagePath);
-            }
-          });
+          self.uploadToS3(imagePath, 'bc-timelapse', imageProps.bucket + "/" + imageFilename);
 
         }
 
       });
+
+    });
+
+  },
+
+  uploadToS3: function(imagePath, bucket, key, recurse){
+
+    var recurse = recurse || 2,
+        self = this;
+
+    var imageStream = self.libs.fs.createReadStream(imagePath);
+
+    var s3 = new self.libs.aws.S3({
+      params: {
+        Bucket: bucket,
+        Key: key
+      }
+    });
+
+    s3.upload({ Body: imageStream}, function(err, data) {
+
+      if (err) {
+
+        self.libs.winston.error("Error uploading data: ", err);
+
+        if(recurse > 0){
+          uploadToS3(imagePath, bucket, key, recurse - 1);
+        }
+
+      } else {
+
+        self.libs.winston.info(key + ' has uploaded successfully to S3')
+
+        // only delete data if we're sure we've uploaded it to s3
+        self.libs.fs.unlink(imagePath);
+
+      }
 
     });
 
