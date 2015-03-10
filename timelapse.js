@@ -49,15 +49,16 @@ Timelapse.prototype = {
     var self = this;
 
     // determine the usb bus and port to reset
-    var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/)
+    var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/),
+        usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
 
     // clear out old data so callback will trigger correct phase
     this.camera = null;
     this.libs.gphoto2 = null;
     
-    this.libs.winston.error(reason + ': rebooting');
+    this.libs.winston.error(reason + ': re-establishing connection to ' + usbPath);
 
-    this.libs.exec('./usbreset /dev/bus/usb/' + port[1] + '/' + port[2], function(err, stdout, stderr){
+    this.libs.exec('./usbreset ' + usbPath, function(err, stdout, stderr){
 
       self.libs.winston.log('stdout: ' + stdout);
       self.libs.winston.log('stderr: ' + stderr);
