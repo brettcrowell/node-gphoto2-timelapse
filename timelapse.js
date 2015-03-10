@@ -14,7 +14,8 @@ var Timelapse = function(exposureSeq){
     aws: require('aws-sdk'),
     fs: require('fs'),
     winston: require('winston'),
-    seq: require('./sequence.js')
+    seq: require('./sequence.js'),
+    exec: require('child_process').exec
     
   }
 
@@ -38,30 +39,40 @@ Timelapse.prototype = {
   /**
    * Something bad happened.  Ask the operating system to
    * reset all USB connections to see if we can fix it.
+   *
+   * Note:  This requires a compiled version of usbreset.c to reside in the same folder...
+   * gcc -o usbreset usbreset.c
    */
 
   resetUsb: function(reason, callback){
-    
+
+    var self = this;
+
+    // determine the usb bus and port to reset
+    var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/)
+
+    // clear out old data so callback will trigger correct phase
     this.camera = null;
     this.libs.gphoto2 = null;
     
     this.libs.winston.error(reason + ': rebooting');
 
-    var usb = require('usb'),
-        c = usb.findByIds(1200, 810);
+    this.libs.exec('./usbreset /dev/bus/usb/' + port[1] + '/' + port[2], function(err, stdout, stderr){
 
-    if(c){
+      self.libs.winston.log('stdout: ' + stdout);
+      self.libs.winston.log('stderr: ' + stderr);
 
-      // try to reset the usb connection
-      c.open();
-      c.reset(callback);
+      if (err !== null) {
 
-    } else {
+        // crash if we can't get going again
+        console.log('exec error: ' + err);
+        process.exit(1);
 
-      // crash if we can't get going again
-      process.exit(1);
+      }
 
-    }
+      callback();
+
+    });
 
   },
 
