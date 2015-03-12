@@ -26,6 +26,7 @@ var Timelapse = function(exposureSeq){
     this.libs.fs.mkdirSync('logs');
   }
 
+  this.libs.winston.exitOnError = false;
   this.libs.winston.add(this.libs.winston.transports.File, { filename: 'logs/' + now + '.log' });
   this.libs.winston.info('solar lapse is up and running at ' + now);
 
