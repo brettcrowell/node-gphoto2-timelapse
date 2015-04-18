@@ -57,7 +57,7 @@ Timelapse.prototype = {
     this.camera = null;
     this.libs.gphoto2 = null;
     
-    this.libs.winston.error(reason + ': re-establishing connection to ' + usbPath);
+    this.libs.winston.warn(reason + ': re-establishing connection to ' + usbPath);
 
     this.libs.exec('./usbreset ' + usbPath, function(err, stdout, stderr){
 
@@ -191,7 +191,7 @@ Timelapse.prototype = {
 
       if (err) {
 
-        self.libs.winston.error("Error uploading data: ", err);
+        self.libs.winston.warn("error uploading data: ", err);
 
         if(recurse > 0){
           uploadToS3(imagePath, bucket, key, recurse - 1);
