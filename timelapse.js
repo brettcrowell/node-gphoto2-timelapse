@@ -30,6 +30,13 @@ var Timelapse = function(exposureSeq){
   this.libs.winston.add(this.libs.winston.transports.File, { filename: 'logs/' + now + '.log' });
   this.libs.winston.info('solar lapse is up and running at ' + now);
 
+  /**
+   * swallowing all errors this way is a bad idea, @todo: please revisit!
+   */
+  process.on('uncaughtException', function (err) {
+    this.libs.winston.warn('Caught exception: ' + err);
+  });
+
   // @todo: future support for separting photos into buckets dynamically
   this.takeNextPicture();
 
