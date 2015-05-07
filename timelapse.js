@@ -34,8 +34,8 @@ var Timelapse = function(exposureSeq){
    * swallowing all errors this way is a bad idea, @todo: please revisit!
    */
   process.on('uncaughtException', function (err) {
-    this.libs.winston.warn('Caught exception: ' + err);
-  });
+    this.libs.winston.warn('Caught uncaught exception: ' + err);
+  }.bind(this));
 
   // @todo: future support for separting photos into buckets dynamically
   this.takeNextPicture();
@@ -201,7 +201,7 @@ Timelapse.prototype = {
         self.libs.winston.warn("error uploading data: ", err);
 
         if(recurse > 0){
-          uploadToS3(imagePath, bucket, key, recurse - 1);
+          self.uploadToS3(imagePath, bucket, key, recurse - 1);
         }
 
       } else {
