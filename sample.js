@@ -5,7 +5,8 @@ tl = require('./timelapse.js');
 seq = require('./sequence.js');
 
 /*
-  Create a custom timelapse which runs for 120 days, taking photos at sunrise, 9am, 12:30pm, golden hour, and 6:30pm
+  Create a custom timelapse which runs for n days, taking photos at
+  sunrise, 9am, 12:30pm, golden hour, and 6:30pm
  */
 
 var now = bucket = new Date().getTime(),
@@ -15,9 +16,10 @@ var now = bucket = new Date().getTime(),
 exposures = exposures.concat(seq.surround('startup', bucket, now, 30, 12000));
 
 // sunrise lapse
-var epoch  = 1425380400000;
+var epoch  = 1425380400000, // 3/3/15 @ 6:00am Boston time
+    numDays = 400;
 
-for(var i = 0; i < 120; i++){
+for(var i = 0; i < numDays; i++){
 
   // we need a reference for today's unix time, so lets just use 6am
   var todayAtSixAm = epoch + (i * 86400000);
