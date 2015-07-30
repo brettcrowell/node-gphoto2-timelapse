@@ -55,13 +55,12 @@ A `Sequence` is a specialized queue whose elements are exposure times, represent
 ```
 {
   name: 'sunrise',
-  saveAfterUpload: false,
   bucket: 'bcrowell-timelapse',
   ts: 1425380400000
 }
 ```
 
-_Note: If `bucket` is omitted, no attempt will be made to upload to S3, and `saveAfterUpload` will be set to true_
+_Note: If `bucket` is omitted, no attempt will be made to upload to S3, and images will be stored in the `./output` directory_
 
 `Sequence` exposes two methods to its consumer, `getNextImage` and `hasMoreImages`.  Unlike a queue, `getNextImage` won't necessarialy return the object on top of the stack, but rather the next image whose timestamp is in the future.  If a sequence contains many exposures with timestamps that have passed, it will skip them.  This becomes extremely helpful in situations where a long-running capture might be interrupted.
 
