@@ -30,16 +30,10 @@ sudo npm install -g node-gyp
 sudo npm install -g gphoto2
 ```
 
-5) Install forever globally...
+5) And finally, clone this repo...
 
 ```sh
-sudo npm install -g forever
-```
-
-6) And finally, clone this repo...
-
-```sh
-$ git clone 
+$ git clone git@github.com:brettcrowell/node-gphoto2-timelapse.git
 ```
 
 ### USB Reset Script
@@ -95,9 +89,10 @@ To run the example above, assuming it is in a file called `simple-sample.js`, si
 $ node simple-sample.js
 ```
 
-For longer running lapses, it can be very useful to use `forever`...
+For longer running lapses, it can be very useful to install and use `forever`...
 
 ```
+$ npm install -g forever
 $ forever simple-sample.js
 ```
 _More information on `forever` can be found at https://github.com/foreverjs/forever_
