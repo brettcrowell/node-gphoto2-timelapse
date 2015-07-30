@@ -101,6 +101,10 @@ _More information on `forever` can be found at https://github.com/foreverjs/fore
 
 For a more complicated lapse based on sun position, check out `solar-sample.js`
 
+## Tips and Tricks
+
+- On Ubuntu, cameras must be *unmounted* in order to be reserved for `node-gphoto2-timelapse`
+
 ## License
 
 MIT © [Brett Crowell]()
