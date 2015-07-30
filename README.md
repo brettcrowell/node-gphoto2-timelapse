@@ -16,6 +16,7 @@ $ wget https://raw.githubusercontent.com/gonzalo/gphoto2-updater/master/gphoto2-
 wget http://node-arm.herokuapp.com/node_0.10.35_armhf.deb
 sudo dpkg -i node_0.10.35_armhf.deb
 ```
+_Non Raspberry Pi users may want to consider using NVM to maintain multiple versions of Node.  More information can be found at https://github.com/creationix/nvm_
 
 3) Install node-gyp to ease the installation of node-gphoto2...
 
