@@ -170,7 +170,9 @@ Timelapse.prototype = {
             return;
           }
 
-          self.uploadToS3(imagePath, 'bc-timelapse', imageProps.bucket + "/" + imageFilename);
+          if(imageProps.bucket){
+            self.uploadToS3(imagePath, 'bc-timelapse', imageProps.bucket + "/" + imageFilename);
+          }
 
         }
 
