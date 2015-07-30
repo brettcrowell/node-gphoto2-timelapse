@@ -79,7 +79,20 @@ new Timelapse(myTestSequence);
 
 ```
 
-For a more complicated lapse based on sun position, check out the sample code.
+To run the example above, assuming it is in a file called `simple-sample.js`, simply point node there...
+
+```
+$ node simple-sample.js
+```
+
+For longer running lapses, it can be very useful to use `forever`...
+
+```
+$ forever simple-sample.js
+```
+_More information on `forever` can be found at https://github.com/foreverjs/forever_
+
+For a more complicated lapse based on sun position, check out `solar-sample.js`
 
 ## License
 
