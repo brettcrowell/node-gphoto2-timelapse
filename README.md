@@ -1,6 +1,6 @@
 The classes found in this package allow users to run clock-time based timelapses using Node.JS, gPhoto2, and optionally SunCalc & AWS.  This project was designed specifically to run headless on a Raspberry Pi, using Forever.
 
-## Install
+## Basic Installation
 
 This package relies heavily on external software.  Below you'll find a crash course to get your Pi up and running.  Most other machines should come up by following similar steps.
 
@@ -44,20 +44,38 @@ $ npm install --global solar-lapse
 
 ## Usage
 
-As mentioned above, this package allows you to create timelapses based on clock-time.  This is facilitated by two main classes, Sequence and Timelapse.  Getting started is quite simple...
+As mentioned above, this package allows you to create timelapses based on clock-time.  This is facilitated by two main classes, Sequence and Timelapse.
+
+A `Sequence` is a specialized queue whose elements are exposure times, represented as Objects containing UTC timestamps and metadata such as a filename prefix and S3 Bucket (if applicable).  A sample object follows...
+
+```
+{
+  name: 'sunrise',
+  bucket: 'bcrowell-timelapse',
+  ts: 1425380400000
+}
+```
+
+`Sequence` exposes two methods to its consumer, `getNextImage` and `hasMoreImages`.  Unlike a queue, `getNextImage` won't necessarialy return the object on top of the stack, but rather the next image whose timestamp is in the future.  If a sequence contains many exposures with timestamps that have passed, it will skip them.  This becomes extremely helpful in situations where a long-running capture might be interrupted.
+
+When a `Timelapse` is created, a `Sequence` must be passed in.  `Timelapse` will then handle connecting to the camera, capturing each image at the correct time, downloading it from the camera, and saving or uploading to Amazon S3.
 
 ```js
 
 // take 30 exposures, one every 30 seconds, starting immediatey
-var tl = require('solar-lapse');
-var exposureTimes = [];
+var now = new Date().getTime(),
+    exposures = [];
 
-var now = new Date().getTime();
 for(var i = 0; i < 30; i++){
-  exposureTimes.push(now + (i * 30000));
+  exposureTimes.push({
+    name: 'test-lapse',
+    now + (i * 30000)
+  });
 }
 
-new tl.Timelapse(exposureTimes);
+var myTestSequence = new Sequence(exposures);
+
+new Timelapse(myTestSequence);
 
 ```
 
