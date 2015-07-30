@@ -70,16 +70,16 @@ When a `Timelapse` is created, a `Sequence` must be passed in.  `Timelapse` will
 
 // take 30 exposures, one every 30 seconds, starting immediatey
 var now = new Date().getTime(),
-    exposures = [];
+    exposureTimes = [];
 
 for(var i = 0; i < 30; i++){
   exposureTimes.push({
     name: 'test-lapse',
-    now + (i * 30000)
+    ts: now + (i * 30000)
   });
 }
 
-var myTestSequence = new Sequence(exposures);
+var myTestSequence = new Sequence(exposureTimes);
 
 new Timelapse(myTestSequence);
 
