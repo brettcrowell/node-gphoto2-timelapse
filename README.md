@@ -36,10 +36,20 @@ sudo npm install -g gphoto2
 sudo npm install -g forever
 ```
 
-6) And finally, install this package...
+6) And finally, clone this repo...
 
 ```sh
-$ npm install --global solar-lapse
+$ git clone 
+```
+
+### USB Reset Script
+
+During the course of a long-running capture, gPhoto2 may lose its connection to the camera.  If this situation is detected, Node will execute a script which resets the USB port the camera is connected to.
+
+In order for this all to work, that script (`usbreset.c`) must be compiled using `gcc` before running the app...
+
+```
+$ gcc -o usbreset usbreset.c
 ```
 
 ## Usage
