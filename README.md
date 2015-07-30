@@ -44,7 +44,7 @@ $ git clone
 
 ### USB Reset Script
 
-During the course of a long-running capture, gPhoto2 may lose its connection to the camera.  If this situation is detected, Node will execute a script which resets the USB port the camera is connected to.
+During the course of a long-running capture, gPhoto2 may lose its connection to the camera.  If this situation is detected, `node-gphoto2-timelapse` will execute a script which resets the USB port the camera is connected to.
 
 In order for this all to work, that script (`usbreset.c`) must be compiled using `gcc` before running the app...
 
