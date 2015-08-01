@@ -6,7 +6,8 @@
 var Sequence = function(exposures){
 
   // @todo build in ability to run a timed lapse without fancy array
-  this.exposures = exposures.sort(this._byTs).filter(this._futureOnly);
+  this.exposures = exposures || [];
+  this._sortImages();
 
 };
 
@@ -18,6 +19,15 @@ Sequence.prototype = {
 
   _futureOnly: function(e){
     return e.ts > new Date().getTime();
+  },
+
+  _sortImages: function(){
+    this.exposures = this.exposures.sort(this._byTs).filter(this._futureOnly);
+  },
+
+  addImage: function(image){
+    this.exposures.push(image);
+    this._sortImages();
   },
 
   getNextImage: function(){
