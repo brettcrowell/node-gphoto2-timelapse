@@ -158,6 +158,8 @@ Timelapse.prototype = {
         self.libs.fs.mkdirSync(imageDirectory);
       }
 
+      this.libs.winston.info('taking image ' + imageProps.name + ' (' + imageProps.ts + ')');
+
       self.libs.fs.writeFile(imagePath, data, function (err) {
 
         if (err){
@@ -186,6 +188,8 @@ Timelapse.prototype = {
         }
 
         var currentImageDelay = new Date().getTime() - imageProps.ts;
+
+        self.libs.winston.info('operating delay for current image was ' + (currentImageDelay / 1000) + "s")
 
         self.takeNextPicture(currentImageDelay);
 
