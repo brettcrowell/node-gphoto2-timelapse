@@ -166,8 +166,11 @@ Timelapse.prototype = {
           self.libs.winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
           if(fileSizeInBytes < 100000){
+
             self.resetUsb('insufficient filesize detected', callback);
+            self.libs.fs.unlink(imagePath);
             return;
+
           }
 
           if(imageProps.bucket){
