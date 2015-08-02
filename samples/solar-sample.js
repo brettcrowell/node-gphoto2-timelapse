@@ -1,8 +1,8 @@
 var suncalc, tl, seq;
 
 suncalc = require('suncalc');
-tl = require('./timelapse.js');
-seq = require('./sequence.js');
+tl = require('../timelapse.js');
+seq = require('../sequence.js');
 
 /*
   Create a custom timelapse which runs for n days, taking photos at
