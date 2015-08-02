@@ -56,32 +56,38 @@ Timelapse.prototype = {
 
     var self = this;
 
-    // determine the usb bus and port to reset
-    var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/),
+    self.libs.winston.info("resetting usb port because " + reason);
+
+    if(this.camera){
+
+      // determine the usb bus and port to reset
+      var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/),
         usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
 
-    // clear out old data so callback will trigger correct phase
-    this.camera = null;
-    this.libs.gphoto2 = null;
-    
-    this.libs.winston.warn(reason + ': re-establishing connection to ' + usbPath);
+      // clear out old data so callback will trigger correct phase
+      this.camera = null;
+      this.libs.gphoto2 = null;
 
-    this.libs.exec('./usbreset ' + usbPath, function(err, stdout, stderr){
+      this.libs.winston.warn(reason + ': re-establishing connection to ' + usbPath);
 
-      self.libs.winston.log('stdout: ' + stdout);
-      self.libs.winston.log('stderr: ' + stderr);
+      this.libs.exec('./usbreset ' + usbPath, function(err, stdout, stderr){
 
-      if (err !== null) {
+        self.libs.winston.log('stdout: ' + stdout);
+        self.libs.winston.log('stderr: ' + stderr);
 
-        // crash if we can't get going again
-        console.log('exec error: ' + err);
-        process.exit(1);
+        if (err !== null) {
 
-      }
+          // crash if we can't get going again
+          console.log('exec error: ' + err);
+          process.exit(1);
 
-      callback();
+        }
 
-    });
+        callback();
+
+      });
+
+    }
 
   },
 
