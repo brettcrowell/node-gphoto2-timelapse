@@ -7,7 +7,8 @@
 var Timelapse = function(exposureSeq){
 
   var now = new Date().getTime();
-  
+
+  //@todo find out how other node developers do this!!
   this.libs = {
 
     gphoto2: undefined,
@@ -158,7 +159,7 @@ Timelapse.prototype = {
         self.libs.fs.mkdirSync(imageDirectory);
       }
 
-      this.libs.winston.info('taking image ' + imageProps.name + ' (' + imageProps.ts + ')');
+      self.libs.winston.info('taking image ' + imageProps.name + ' (' + imageProps.ts + ')');
 
       self.libs.fs.writeFile(imagePath, data, function (err) {
 
