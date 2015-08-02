@@ -185,7 +185,9 @@ Timelapse.prototype = {
 
         }
 
-        self.takeNextPicture();
+        var currentImageDelay = new Date().getTime() - imageProps.ts;
+
+        self.takeNextPicture(currentImageDelay);
 
       });
 
@@ -237,19 +239,24 @@ Timelapse.prototype = {
    * @param nextImage Image properties, must include name & timestamp (ts)
    */
 
-   takeNextPicture: function(){
+   takeNextPicture: function(delay){
 
-      if(this.sequence.hasMoreImages()){
+      if(this.sequence.hasMoreImages(delay)){
 
         var currentTime = new Date().getTime(),
-            nextImage = this.sequence.getNextImage();
+            nextImage = this.sequence.getNextImage(delay);
+
+        // if a previous image was delayed and we aren't strict, the next image might be in the past.
+        // just take it immediately.
+        var interval = nextImage.ts - currentTime;
+        interval = (interval < 0) ? 0 : interval;
 
         setTimeout(function(){
 
           // wait (diff now and next exposure) then recurse
           this.takePicture(nextImage);
 
-        }.bind(this), nextImage.ts - currentTime);
+        }.bind(this), interval);
 
         return;
 
