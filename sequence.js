@@ -54,7 +54,6 @@ Sequence.prototype = {
   },
 
   hasMoreImages: function(delay){
-    this._sortImages(delay);
     return this.exposures.length > 0;
   }
 
