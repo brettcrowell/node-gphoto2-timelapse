@@ -185,7 +185,7 @@ Timelapse.prototype = {
 
         }
 
-        this.takeNextPicture();
+        self.takeNextPicture();
 
       });
 

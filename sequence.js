@@ -1,3 +1,5 @@
+var winston = require('winston');
+
 /**
  * Creates a list of this.exposures based on custom criteria
  * @param bucket The name of the bucket to place images into
