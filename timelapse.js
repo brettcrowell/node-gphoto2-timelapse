@@ -62,7 +62,7 @@ Timelapse.prototype = {
 
       // determine the usb bus and port to reset
       var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/),
-        usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
+          usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
 
       // clear out old data so callback will trigger correct phase
       this.camera = null;
@@ -167,7 +167,7 @@ Timelapse.prototype = {
         } else {
 
           var fileSizeInBytes = self.libs.fs.statSync(imagePath)["size"],
-              fileSizeInMegabytes = fileSizeInBytes / 1000000.0
+              fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
 
           self.libs.winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
@@ -184,6 +184,8 @@ Timelapse.prototype = {
           }
 
         }
+
+        this.takeNextPicture();
 
       });
 
@@ -235,16 +237,7 @@ Timelapse.prototype = {
    * @param nextImage Image properties, must include name & timestamp (ts)
    */
 
-   takeNextPicture: function(nextImage){
-
-      var self = this;
-
-      if(nextImage){
-
-        this.libs.winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
-        this.takePicture(nextImage);
-
-      }
+   takeNextPicture: function(){
 
       if(this.sequence.hasMoreImages()){
 
@@ -254,9 +247,9 @@ Timelapse.prototype = {
         setTimeout(function(){
 
           // wait (diff now and next exposure) then recurse
-          self.takeNextPicture(nextImage);
+          this.takePicture(nextImage);
 
-        }, nextImage.ts - currentTime);
+        }.bind(this), nextImage.ts - currentTime);
 
         return;
 
