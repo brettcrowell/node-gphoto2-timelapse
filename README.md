@@ -67,35 +67,32 @@ _Note: If `bucket` is omitted, no attempt will be made to upload to S3, and imag
 When a `Timelapse` is created, a `Sequence` must be passed in.  `Timelapse` will then handle connecting to the camera, capturing each image at the correct time, downloading it from the camera, and saving or uploading to Amazon S3.
 
 ```js
+var now = new Date().getTime();
+var myTestSequence = new seq.Sequence();
 
 // take 30 exposures, one every 30 seconds, starting immediatey
-var now = new Date().getTime(),
-    exposureTimes = [];
 
 for(var i = 0; i < 30; i++){
-  exposureTimes.push({
+  myTestSequence.addImage({
     name: 'test-lapse',
     ts: now + (i * 30000)
   });
 }
 
-var myTestSequence = new Sequence(exposureTimes);
-
-new Timelapse(myTestSequence);
-
+new tl.Timelapse(myTestSequence);
 ```
 
 To run the example above, assuming it is in a file called `simple-sample.js`, simply point node there...
 
 ```
-$ node simple-sample.js
+$ node ./samples/simple-sample.js
 ```
 
 For longer running lapses, it can be very useful to install and use `forever`...
 
 ```
 $ npm install -g forever
-$ forever simple-sample.js
+$ forever ./samples/simple-sample.js
 ```
 _More information on `forever` can be found at https://github.com/foreverjs/forever_
 
