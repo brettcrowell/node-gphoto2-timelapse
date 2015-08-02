@@ -67,6 +67,9 @@ _Note: If `bucket` is omitted, no attempt will be made to upload to S3, and imag
 When a `Timelapse` is created, a `Sequence` must be passed in.  `Timelapse` will then handle connecting to the camera, capturing each image at the correct time, downloading it from the camera, and saving or uploading to Amazon S3.
 
 ```js
+var tl = require('../timelapse.js');
+var seq = require('../sequence.js');
+
 var now = new Date().getTime();
 var myTestSequence = new seq.Sequence();
 
