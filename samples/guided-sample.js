@@ -1,26 +1,46 @@
-var tl, seq, winston;
+var tl, seq, suncalc, winston;
+
 
 tl = require('../timelapse.js');
 seq = require('../sequence.js');
+suncalc = require('suncalc');
 winston = require('winston');
 
-var now = new Date().getTime(),
-    myTestSequence = new seq.Sequence();
+var now = new Date().getTime();
+var myTestSequence = new seq.Sequence();
+
+/*
+  using the suncalc library to calculate a full day lapse in boston tomorrow.
+  ignore this if you'd rather start immediately!
+ */
+
+var today = new Date();
+var tomorrow = today.setDate(today.getDate() + 1);
+
+var times = suncalc.getTimes(tomorrow, 42.3601, -71.0589);
+
+var dawn = times.nauticalDawn.getTime();
+var dusk = times.nauticalDusk.getTime();
+var duration = (dusk - dawn) / 1000;
+
+/*
+  end of solar lapse calculations
+ */
 
 var params = {
 
   name: "guided-sample-lapse",
 
-  startTime: now,
+  startTime: dawn,
 
   input: {
 
     // starting at startTime, how long would you like to lapse for (real-time)?
 
     days: 0,
-    hours: 3,
-    minutes: 30,
-    seconds: 0
+    hours: 0,
+    minutes: 0,
+    seconds: duration
 
   },
 
