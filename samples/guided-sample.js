@@ -14,10 +14,9 @@ var myTestSequence = new seq.Sequence();
   ignore this if you'd rather start immediately!
  */
 
-var today = new Date();
-var tomorrow = today.setDate(today.getDate() + 1);
+var solarDate = new Date("2015-8-03");
 
-var times = suncalc.getTimes(tomorrow, 42.3601, -71.0589);
+var times = suncalc.getTimes(solarDate, 42.3601, -71.0589);
 
 var dawn = times.nauticalDawn.getTime();
 var dusk = times.nauticalDusk.getTime();
@@ -31,16 +30,16 @@ var params = {
 
   name: "guided-sample-lapse",
 
-  startTime: dawn,
+  startTime: now,
 
   input: {
 
     // starting at startTime, how long would you like to lapse for (real-time)?
 
     days: 0,
-    hours: 0,
+    hours: 5,
     minutes: 0,
-    seconds: duration
+    seconds: 0
 
   },
 
