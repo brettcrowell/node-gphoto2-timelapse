@@ -11,9 +11,11 @@ var params = {
 
   name: "guided-sample-lapse",
 
+  startTime: now,
+
   input: {
 
-    // starting now, how long would you like to lapse for (real-time)?
+    // starting at startTime, how long would you like to lapse for (real-time)?
 
     days: 0,
     hours: 3,
@@ -47,7 +49,7 @@ for(var i = 0; i < numFrames; i++){
   myTestSequence.addImage({
 
     name: params.name,
-    ts: now + (i * (frameInterval * 1000))
+    ts: params.startTime + (i * (frameInterval * 1000))
 
   });
 }
