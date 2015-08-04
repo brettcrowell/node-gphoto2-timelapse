@@ -66,7 +66,7 @@ for(var i = 0; i < numFrames; i++){
   myTestSequence.addImage({
 
     name: params.name,
-    ts: solarDate + (i * (frameInterval * 1000))
+    ts: solarDate.getTime() + (i * (frameInterval * 1000))
 
   });
 }
@@ -74,7 +74,7 @@ for(var i = 0; i < numFrames; i++){
 myTestSequence.addImage({
 
   name: 'test-image',
-  ts: now
+  ts: now + 3000
 
 });
 
