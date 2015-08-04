@@ -14,7 +14,7 @@ var myTestSequence = new seq.Sequence();
   ignore this if you'd rather start immediately!
  */
 
-var solarDate = new Date("2015-8-03");
+var solarDate = new Date("2015-8-04");
 
 var times = suncalc.getTimes(solarDate, 42.3601, -71.0589);
 
@@ -30,16 +30,14 @@ var params = {
 
   name: "guided-sample-lapse",
 
-  startTime: now,
-
   input: {
 
     // starting at startTime, how long would you like to lapse for (real-time)?
 
     days: 0,
-    hours: 5,
+    hours: 0,
     minutes: 0,
-    seconds: 0
+    seconds: duration
 
   },
 
@@ -68,9 +66,16 @@ for(var i = 0; i < numFrames; i++){
   myTestSequence.addImage({
 
     name: params.name,
-    ts: params.startTime + (i * (frameInterval * 1000))
+    ts: solarDate + (i * (frameInterval * 1000))
 
   });
 }
+
+myTestSequence.addImage({
+
+  name: 'test-image',
+  ts: now
+
+});
 
 new tl.Timelapse(myTestSequence);
