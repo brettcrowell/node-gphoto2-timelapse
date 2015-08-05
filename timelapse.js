@@ -69,7 +69,7 @@ Timelapse.prototype = {
       this.camera = null;
       this.libs.gphoto2 = null;
 
-      this.libs.winston.warn(reason + ': re-establishing connection to ' + usbPath);
+      this.libs.winston.warn('re-establishing connection to ' + usbPath);
 
       this.libs.exec('./usbreset ' + usbPath, function(err, stdout, stderr){
 
@@ -80,15 +80,15 @@ Timelapse.prototype = {
 
           // crash if we can't get going again
           console.log('exec error: ' + err);
-          process.exit(1);
+          //process.exit(1);
 
         }
-
-        callback();
 
       });
 
     }
+
+    callback();
 
   },
 
