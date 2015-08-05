@@ -14,7 +14,7 @@ var myTestSequence = new seq.Sequence();
   ignore this if you'd rather start immediately!
  */
 
-var solarDate = new Date("2015-8-04");
+var solarDate = new Date("2015-8-06");
 
 var times = suncalc.getTimes(solarDate, 42.3601, -71.0589);
 
@@ -66,7 +66,7 @@ for(var i = 0; i < numFrames; i++){
   myTestSequence.addImage({
 
     name: params.name,
-    ts: solarDate.getTime() + (i * (frameInterval * 1000))
+    ts: dawn + (i * (frameInterval * 1000))
 
   });
 }
