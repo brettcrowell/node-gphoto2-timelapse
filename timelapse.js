@@ -7,7 +7,8 @@
 var Timelapse = function(exposureSeq){
 
   var now = new Date().getTime();
-  
+
+  //@todo find out how other node developers do this!!
   this.libs = {
 
     gphoto2: undefined,
@@ -62,13 +63,13 @@ Timelapse.prototype = {
 
       // determine the usb bus and port to reset
       var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/),
-        usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
+          usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
 
       // clear out old data so callback will trigger correct phase
       this.camera = null;
       this.libs.gphoto2 = null;
 
-      this.libs.winston.warn(reason + ': re-establishing connection to ' + usbPath);
+      this.libs.winston.warn('re-establishing connection to ' + usbPath);
 
       this.libs.exec('./usbreset ' + usbPath, function(err, stdout, stderr){
 
@@ -79,15 +80,15 @@ Timelapse.prototype = {
 
           // crash if we can't get going again
           console.log('exec error: ' + err);
-          process.exit(1);
+          //process.exit(1);
 
         }
-
-        callback();
 
       });
 
     }
+
+    callback();
 
   },
 
@@ -158,6 +159,8 @@ Timelapse.prototype = {
         self.libs.fs.mkdirSync(imageDirectory);
       }
 
+      self.libs.winston.info('taking image ' + imageProps.name + ' (' + imageProps.ts + ')');
+
       self.libs.fs.writeFile(imagePath, data, function (err) {
 
         if (err){
@@ -167,7 +170,7 @@ Timelapse.prototype = {
         } else {
 
           var fileSizeInBytes = self.libs.fs.statSync(imagePath)["size"],
-              fileSizeInMegabytes = fileSizeInBytes / 1000000.0
+              fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
 
           self.libs.winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
@@ -184,6 +187,12 @@ Timelapse.prototype = {
           }
 
         }
+
+        var currentImageDelay = new Date().getTime() - imageProps.ts;
+
+        self.libs.winston.info('operating delay for current image was ' + (currentImageDelay / 1000) + "s")
+
+        self.takeNextPicture(currentImageDelay);
 
       });
 
@@ -235,28 +244,24 @@ Timelapse.prototype = {
    * @param nextImage Image properties, must include name & timestamp (ts)
    */
 
-   takeNextPicture: function(nextImage){
+   takeNextPicture: function(delay){
 
-      var self = this;
-
-      if(nextImage){
-
-        this.libs.winston.info('taking image ' + nextImage.name + ' (' + nextImage.ts + ')');
-        this.takePicture(nextImage);
-
-      }
-
-      if(this.sequence.hasMoreImages()){
+      if(this.sequence.hasMoreImages(delay)){
 
         var currentTime = new Date().getTime(),
-            nextImage = this.sequence.getNextImage();
+            nextImage = this.sequence.getNextImage(delay);
+
+        // if a previous image was delayed and we aren't strict, the next image might be in the past.
+        // just take it immediately.
+        var interval = nextImage.ts - currentTime;
+        interval = (interval < 0) ? 0 : interval;
 
         setTimeout(function(){
 
           // wait (diff now and next exposure) then recurse
-          self.takeNextPicture(nextImage);
+          this.takePicture(nextImage);
 
-        }, nextImage.ts - currentTime);
+        }.bind(this), interval);
 
         return;
 

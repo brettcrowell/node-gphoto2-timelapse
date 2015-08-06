@@ -1,7 +1,5 @@
-var suncalc, tl, seq;
-
-tl = require('../timelapse.js');
-seq = require('../sequence.js');
+var tl = require('../timelapse.js');
+var seq = require('../sequence.js');
 
 var now = new Date().getTime(),
     myTestSequence = new seq.Sequence();

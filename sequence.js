@@ -1,3 +1,5 @@
+var winston = require('winston');
+
 /**
  * Creates a list of this.exposures based on custom criteria
  * @param bucket The name of the bucket to place images into
@@ -17,12 +19,15 @@ Sequence.prototype = {
     return a.ts - b.ts;
   },
 
-  _futureOnly: function(e){
-    return e.ts > new Date().getTime();
+  _futureOnly: function(delay){
+    return function(e){
+      return e.ts > (new Date().getTime() + delay);
+    }
   },
 
-  _sortImages: function(){
-    this.exposures = this.exposures.sort(this._byTs).filter(this._futureOnly);
+  _sortImages: function(delay){
+    delay = delay || 0;
+    this.exposures = this.exposures.sort(this._byTs).filter(this._futureOnly(delay));
   },
 
   addImage: function(image){
@@ -30,12 +35,14 @@ Sequence.prototype = {
     this._sortImages();
   },
 
-  getNextImage: function(){
+  getNextImage: function(delay){
+
+    delay = delay || 0;
 
     var currentTime = new Date().getTime(),
         nextImage = undefined;
 
-    while((nextImage = this.exposures.shift()).ts < currentTime){
+    while(((nextImage = this.exposures.shift()).ts + delay) < currentTime){
 
       // skip any images that should have already been taken
       winston.info('skipping image ' + nextImage.name + nextImage.ts);
@@ -46,7 +53,7 @@ Sequence.prototype = {
 
   },
 
-  hasMoreImages: function(){
+  hasMoreImages: function(delay){
     return this.exposures.length > 0;
   }
 
