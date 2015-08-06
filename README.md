@@ -1,5 +1,9 @@
 The classes found in this package allow users to run clock-time based timelapses using Node.JS, gPhoto2, and optionally SunCalc & AWS.  This project was designed specifically to run headless on a Raspberry Pi, using Forever.
 
+#### Sample Videos
+
+Check out this [YouTube Channel](https://www.youtube.com/playlist?list=PLcadkFhxgoIj8_AKHufKrx85mjtlHP8Cb) to view videos created using this codebase.
+
 ## Basic Installation
 
 This package relies heavily on external software.  Below you'll find a crash course to get your Pi up and running.  Most other machines should come up by following similar steps.
