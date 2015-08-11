@@ -84,11 +84,12 @@ Timelapse.prototype = {
 
         }
 
+        callback();
+
       });
 
     }
 
-    callback();
 
   },
 
