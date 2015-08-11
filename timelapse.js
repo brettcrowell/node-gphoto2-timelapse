@@ -73,14 +73,13 @@ Timelapse.prototype = {
 
       this.libs.exec('./usbreset ' + usbPath, function(err, stdout, stderr){
 
-        self.libs.winston.log('stdout: ' + stdout);
-        self.libs.winston.log('stderr: ' + stderr);
+        self.libs.winston.info('stdout: ' + stdout);
+        self.libs.winston.info('stderr: ' + stderr);
 
         if (err !== null) {
 
           // crash if we can't get going again
-          console.log('exec error: ' + err);
-          //process.exit(1);
+          self.libs.winston.error('exec error: ' + err);
 
         }
 
@@ -88,8 +87,12 @@ Timelapse.prototype = {
 
       });
 
-    }
+    } else {
 
+      self.libs.winston.error('unable to locate usable camera.  please check hardware');
+      process.exit(1);
+
+    }
 
   },
 
