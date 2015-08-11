@@ -14,7 +14,7 @@ var myTestSequence = new seq.Sequence();
   ignore this if you'd rather start immediately!
  */
 
-var solarDate = new Date("2015-8-06");
+var solarDate = new Date("2015-8-12");
 
 var times = suncalc.getTimes(solarDate, 42.3601, -71.0589);
 
@@ -46,17 +46,21 @@ var params = {
     // how long would you like your output to be?
 
     minutes: 0,
-    seconds: 45,
+    seconds: 60,
     frameRate: 30
 
   }
 
 };
 
+var startTime = dawn;
+
 // calculate lapse properties based on preferences @todo integrate moment.js!
 var numFrames = ((params.output.minutes * 60) + params.output.seconds) * params.output.frameRate,
     secondsToLapse = (params.input.days * 24 * 60 * 60) + (params.input.hours * 60 * 60) + (params.input.minutes * 60) + params.input.seconds,
     frameInterval = parseInt(secondsToLapse / numFrames, 10);
+
+winston.info("frame interval calculated at " + frameInterval + "s");
 
 if(frameInterval < 10){
   winston.warn("some cameras/configurations may have trouble capturing more frequently than every 10 seconds.  be careful!")
@@ -66,7 +70,7 @@ for(var i = 0; i < numFrames; i++){
   myTestSequence.addImage({
 
     name: params.name,
-    ts: dawn + (i * (frameInterval * 1000))
+    ts: startTime + (i * (frameInterval * 1000))
 
   });
 }
@@ -74,7 +78,7 @@ for(var i = 0; i < numFrames; i++){
 myTestSequence.addImage({
 
   name: 'test-image',
-  ts: now + 3000
+  ts: new Date().getTime() + 1000
 
 });
 
