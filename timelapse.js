@@ -1,9 +1,3 @@
-/**
- * A tool for creating timelapses with GPhoto2 and Node.JS
- * @param sequence
- * @constructor
- */
-
 var gphoto2 = undefined;
 var aws = require('aws-sdk');
 var fs = require('fs');
@@ -11,6 +5,12 @@ var winston = require('winston');
 var seq = require('./sequence.js');
 var moment = require('moment');
 var exec = require('child_process').exec;
+
+/**
+ * A tool for creating timelapses with GPhoto2 and Node.JS
+ * @param sequence
+ * @constructor
+ */
 
 var Timelapse = function(exposureSeq, preferences){
 
