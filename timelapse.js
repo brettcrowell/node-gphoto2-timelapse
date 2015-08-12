@@ -145,12 +145,12 @@ Timelapse.prototype = {
 
         self.camera = list[0];
 
-	// determine the usb bus and port to reset
-	var port = self.camera.port.match(/usb:([0-9]+),([0-9]+)/);
+        // determine the usb bus and port to reset
+        var port = self.camera.port.match(/usb:([0-9]+),([0-9]+)/);
         self.usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
 
         winston.info('Found', self.camera.model);
-	winston.info('Camera found on port ' + self.usbPath);
+        winston.info('Camera found on port ' + self.usbPath);
 
         // take the picture as a callback
         callback();
