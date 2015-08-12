@@ -21,6 +21,7 @@ var Timelapse = function(exposureSeq){
   }
 
   this.camera = undefined;
+  this.usbPath = undefined;
   this.sequence = (exposureSeq.length > 0) ? new this.libs.seq.Sequence(exposureSeq) : exposureSeq;
 
   if (!this.libs.fs.existsSync('logs')){
@@ -61,17 +62,13 @@ Timelapse.prototype = {
 
     if(this.camera){
 
-      // determine the usb bus and port to reset
-      var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/),
-          usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
-
       // clear out old data so callback will trigger correct phase
       this.camera = null;
       this.libs.gphoto2 = null;
 
-      this.libs.winston.warn('re-establishing connection to ' + usbPath);
+      this.libs.winston.warn('re-establishing connection to ' + self.usbPath);
 
-      this.libs.exec('./usbreset ' + usbPath, function(err, stdout, stderr){
+      this.libs.exec('./usbreset ' + self.usbPath, function(err, stdout, stderr){
 
         self.libs.winston.info('stdout: ' + stdout);
         self.libs.winston.info('stderr: ' + stderr);
@@ -135,7 +132,12 @@ Timelapse.prototype = {
 
         self.camera = list[0];
 
+	// determine the usb bus and port to reset
+	var port = self.camera.port.match(/usb:([0-9]+),([0-9]+)/);
+        self.usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
+
         self.libs.winston.info('Found', self.camera.model);
+	self.libs.winston.info('Camera found on port ' + self.usbPath);
 
         // take the picture as a callback
         callback();
