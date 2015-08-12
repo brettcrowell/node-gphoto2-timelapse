@@ -29,10 +29,10 @@ var Timelapse = function(exposureSeq, preferences){
   this.libs.moment.locale('en', {
     calendar : {
       lastDay : '[yesterday at] LTS',
-      sameDay : '[today at] LTS',
-      nextDay : '[tomorrow at] LTS',
+      sameDay : '[today] (L) [at] LTS',
+      nextDay : '[tomorrow] (L) [at] LTS',
       lastWeek : '[last] dddd [at] LTS',
-      nextWeek : 'dddd [at] LTS',
+      nextWeek : 'dddd (L) [at] LTS',
       sameElse : 'L'
     }
   });
@@ -48,7 +48,7 @@ var Timelapse = function(exposureSeq, preferences){
 
   this.libs.winston.exitOnError = false;
   this.libs.winston.add(this.libs.winston.transports.File, { filename: 'logs/' + now + '.log' });
-  this.libs.winston.info('solar lapse is up and running at ' + now);
+  this.libs.winston.info('solar lapse is up and running at ' + this.libs.moment(now).format('LTS [on] L'));
 
   /**
    * swallowing all errors this way is a bad idea, @todo: please revisit!
