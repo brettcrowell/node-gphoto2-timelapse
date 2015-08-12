@@ -4,7 +4,7 @@
  * @constructor
  */
 
-var Timelapse = function(exposureSeq){
+var Timelapse = function(exposureSeq, preferences){
 
   var now = new Date().getTime();
 
@@ -20,8 +20,13 @@ var Timelapse = function(exposureSeq){
     
   }
 
+  // preferences
+  this.preferences = preferences || {};
+  this.preferences["maxMillisecondsBetweenImages"] = this.preferences["maxMillisecondsBetweenImages"] || 3600000;
+
   this.camera = undefined;
   this.usbPath = undefined;
+  this.deferredImage = undefined;
   this.sequence = (exposureSeq.length > 0) ? new this.libs.seq.Sequence(exposureSeq) : exposureSeq;
 
   if (!this.libs.fs.existsSync('logs')){
@@ -254,21 +259,46 @@ Timelapse.prototype = {
 
       if(this.sequence.hasMoreImages(delay)){
 
-        var currentTime = new Date().getTime(),
-            nextImage = this.sequence.getNextImage(delay);
+        var currentTime = new Date().getTime();
 
-        // if a previous image was delayed and we aren't strict, the next image might be in the past.
-        // just take it immediately.
+        // images may be deferred if they cause the camera to idle for too long
+        var nextImage = this.deferredImage || this.sequence.getNextImage(delay);
+
         var millisecondsUntilNextImage = nextImage.ts - currentTime;
 
+        // if a previous image was delayed and we aren't strict, the next image might be in the past.  just take it immediately.
         millisecondsUntilNextImage = (millisecondsUntilNextImage < 0) ? 0 : millisecondsUntilNextImage;
 
-        setTimeout(function(){
+        if(millisecondsUntilNextImage > this.preferences.maxMillisecondsBetweenImages){
 
-          // wait (diff now and next exposure) then recurse
-          this.takePicture(nextImage);
+          /*
+           some cameras have been known to 'drop off' if they aren't accessed frequently enough.
+           the following provision will take a throwaway image every (default 60 mins) to prevent that.
+           */
 
-        }.bind(this), millisecondsUntilNextImage);
+          this.deferredImage = nextImage;
+
+          nextImage = {
+
+            name: "keep-alive-signal",
+            ts: currentTime + this.preferences.maxMillisecondsBetweenImages,
+            discard: true
+
+          };
+
+          millisecondsUntilNextImage = this.preferences.maxMillisecondsBetweenImages;
+
+        } else {
+
+          // if the next image is in an acceptable range, we no longer need to defer
+          this.deferredImage = null;
+
+        }
+
+        this.libs.winston.info("time until next image (" + nextImage.name + "): " + (millisecondsUntilNextImage / 1000) + "s");
+
+        // use a javascript timeout to wait, then capture the next image
+        setTimeout(function(){ this.takePicture(nextImage); }.bind(this), millisecondsUntilNextImage);
 
         return;
 
