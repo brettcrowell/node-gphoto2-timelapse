@@ -16,6 +16,7 @@ var Timelapse = function(exposureSeq, preferences){
     fs: require('fs'),
     winston: require('winston'),
     seq: require('./sequence.js'),
+    moment: require('moment'),
     exec: require('child_process').exec
     
   }
@@ -23,6 +24,18 @@ var Timelapse = function(exposureSeq, preferences){
   // preferences
   this.preferences = preferences || {};
   this.preferences["maxMillisecondsBetweenImages"] = this.preferences["maxMillisecondsBetweenImages"] || 3600000;
+
+  // moment.js configuration
+  this.libs.moment.locale('en', {
+    calendar : {
+      lastDay : '[yesterday at] LTS',
+      sameDay : '[today at] LTS',
+      nextDay : '[tomorrow at] LTS',
+      lastWeek : '[last] dddd [at] LTS',
+      nextWeek : 'dddd [at] LTS',
+      sameElse : 'L'
+    }
+  });
 
   this.camera = undefined;
   this.usbPath = undefined;
@@ -295,7 +308,9 @@ Timelapse.prototype = {
 
         }
 
-        this.libs.winston.info("time until next image (" + nextImage.name + "): " + (millisecondsUntilNextImage / 1000) + "s");
+        // due to built in delays, next image might not capture at specified ts.  keep the user informed!
+        var nextImageActualTs = currentTime + millisecondsUntilNextImage;
+        this.libs.winston.info("next image (`" + nextImage.name + "`) will be taken " + this.libs.moment(nextImageActualTs).calendar());
 
         // use a javascript timeout to wait, then capture the next image
         setTimeout(function(){ this.takePicture(nextImage); }.bind(this), millisecondsUntilNextImage);
