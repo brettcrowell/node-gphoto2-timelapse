@@ -202,8 +202,8 @@ Timelapse.prototype = {
 
           } else {
 
-            var fileSizeInBytes = fs.statSync(imagePath)["size"],
-              fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
+            var fileSizeInBytes = fs.statSync(imagePath)["size"];
+            var fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
 
             winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
@@ -211,6 +211,7 @@ Timelapse.prototype = {
 
               this.resetUsb('insufficient filesize detected', callback);
               fs.unlink(imagePath);
+
               return;
 
             }
@@ -221,9 +222,15 @@ Timelapse.prototype = {
 
           }
 
+          /*
+              We've now found a camera, captured a good image and saved it to disk and/or Amazon S3.
+              Now we must determine how far behind schedule we are (if at all) and prepare to take
+              the next image specified by the sequence.
+           */
+
           var currentImageDelay = new Date().getTime() - imageProps.ts;
 
-          winston.info('operating delay for current image was ' + (currentImageDelay / 1000) + "s")
+          winston.info('current image has processed ' + (currentImageDelay / 1000) + "s behind scheduled time")
 
           this.takeNextPicture(currentImageDelay);
 
