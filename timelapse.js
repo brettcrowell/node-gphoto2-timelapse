@@ -251,7 +251,7 @@ Timelapse.prototype = {
 
         }.bind(this));
 
-      });
+      }.bind(this));
 
     }
 
