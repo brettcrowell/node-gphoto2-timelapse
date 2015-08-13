@@ -208,7 +208,7 @@ Timelapse.prototype = {
 
             winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
-            if(fileSizeInBytes < this.parameters.minImageFileSize || imageProps.discard){
+            if(fileSizeInBytes < this.preferences.minImageFileSize || imageProps.discard){
 
               /*
                   if either invalid image data, or data meant to be discarded (ex. keep-alive images),
@@ -217,7 +217,7 @@ Timelapse.prototype = {
 
               fs.unlink(imagePath);
 
-              if(fileSizeInBytes < this.parameters.minImageFileSize){
+              if(fileSizeInBytes < this.preferences.minImageFileSize){
 
                 /*
                     there was an error and the camera has returned bad data.
