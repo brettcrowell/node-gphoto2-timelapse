@@ -146,8 +146,6 @@ Timelapse.prototype = {
 
     }.bind(this));
 
-    return;
-
   },
 
   /**
@@ -160,71 +158,80 @@ Timelapse.prototype = {
 
   takePicture: function(imageProps){
 
-    var self = this;
+    // should anything go wrong, we'll want to be able to return via callback to this iteration
+    var callback = function(){ this.takePicture(imageProps); }.bind(this);
 
     if(!this.camera){
 
-      this.connectToCamera(function(){
-        this.takePicture(imageProps);
-      }.bind(this))
-
-    }
-
-    // no camera problems if we've made it here, take a photo
-
-    this.camera.takePicture({download: true}, function (er, data) {
-
       /*
-        image data returned from the camera.  check to make sure that it wasn't 'bad data' (anything under 100kb)
-        and if all is good, upload it to Amazon S3 and delete from local output directory.
+          if we don't currently have a camera connection,
+          find one and return via callback
        */
 
-      var imageFilename = imageProps.name + imageProps.ts + '.jpg',
-          imageDirectory = __dirname + '/output',
-          imagePath = imageDirectory + '/' + imageFilename;
+      this.connectToCamera(callback);
 
-      if (!fs.existsSync(imageDirectory)){
-        fs.mkdirSync(imageDirectory);
-      }
+    } else {
 
-      winston.info('taking image ' + imageProps.name + ' (' + imageProps.ts + ')');
+      /*
+          If we've made it here, we've found a camera and should be clear to take the next picture.
+          We're not in the clear, though, as the camera may have disconnected or may return bad data
+       */
 
-      fs.writeFile(imagePath, data, function (err) {
+      this.camera.takePicture({download: true}, function (er, data) {
 
-        if (err){
+        /*
+           image data returned from the camera.  check to make sure that it wasn't 'bad data' (anything under 100kb)
+           and if all is good, upload it to Amazon S3 and delete from local output directory.
+         */
 
-          //resetUsb('error writing data to disk');
+        var imageFilename = imageProps.name + imageProps.ts + '.jpg',
+            imageDirectory = __dirname + '/output',
+            imagePath = imageDirectory + '/' + imageFilename;
 
-        } else {
-
-          var fileSizeInBytes = fs.statSync(imagePath)["size"],
-              fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
-
-          winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
-
-          if(fileSizeInBytes < 100000){
-
-            self.resetUsb('insufficient filesize detected', callback);
-            fs.unlink(imagePath);
-            return;
-
-          }
-
-          if(imageProps.bucket){
-            self.uploadToS3(imagePath, 'bc-timelapse', imageProps.bucket + "/" + imageFilename);
-          }
-
+        if (!fs.existsSync(imageDirectory)){
+          fs.mkdirSync(imageDirectory);
         }
 
-        var currentImageDelay = new Date().getTime() - imageProps.ts;
+        winston.info('taking image ' + imageProps.name + ' (' + imageProps.ts + ')');
 
-        winston.info('operating delay for current image was ' + (currentImageDelay / 1000) + "s")
+        fs.writeFile(imagePath, data, function (err) {
 
-        self.takeNextPicture(currentImageDelay);
+          if (err){
+
+            //resetUsb('error writing data to disk');
+
+          } else {
+
+            var fileSizeInBytes = fs.statSync(imagePath)["size"],
+              fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
+
+            winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
+
+            if(fileSizeInBytes < 100000){
+
+              this.resetUsb('insufficient filesize detected', callback);
+              fs.unlink(imagePath);
+              return;
+
+            }
+
+            if(imageProps.bucket){
+              this.uploadToS3(imagePath, 'bc-timelapse', imageProps.bucket + "/" + imageFilename);
+            }
+
+          }
+
+          var currentImageDelay = new Date().getTime() - imageProps.ts;
+
+          winston.info('operating delay for current image was ' + (currentImageDelay / 1000) + "s")
+
+          this.takeNextPicture(currentImageDelay);
+
+        }.bind(this));
 
       });
 
-    });
+    }
 
   },
 
@@ -289,8 +296,8 @@ Timelapse.prototype = {
         if(millisecondsUntilNextImage > this.preferences.maxMillisecondsBetweenImages){
 
           /*
-           some cameras have been known to 'drop off' if they aren't accessed frequently enough.
-           the following provision will take a throwaway image every (default 60 mins) to prevent that.
+             some cameras have been known to 'drop off' if they aren't accessed frequently enough.
+             the following provision will take a throwaway image every (default 60 mins) to prevent that.
            */
 
           this.deferredImage = nextImage;
