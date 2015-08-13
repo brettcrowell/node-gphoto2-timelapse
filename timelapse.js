@@ -107,6 +107,50 @@ Timelapse.prototype = {
   },
 
   /**
+   * called when no camera was detected.  this is usually the first exposure in the series,
+   * but may be a crash recovery.  either way, re-instantiate GPhoto2 and try to
+   * find a camera to use.  Since this is an async process, need to provide a callback.
+   *
+   * @param callback
+   */
+
+  connectToCamera: function(callback){
+
+    // re-establish the global reference to gphoto2 module
+    gphoto2 = require('gphoto2');
+
+    var GPhoto = new gphoto2.GPhoto2();
+
+    // List cameras / assign list item to variable to use below options
+    GPhoto.list(function (list) {
+
+      if (list.length === 0) {
+
+        // no cameras found?  not buying it.
+        this.resetUsb('no cameras found', callback);
+        return;
+
+      }
+
+      this.camera = list[0];
+
+      // determine the usb bus and port to reset
+      var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/);
+      this.usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
+
+      winston.info('found', this.camera.model);
+      winston.info('camera found on port ' + this.usbPath);
+
+      // take the picture as a callback
+      callback();
+
+    }.bind(this));
+
+    return;
+
+  },
+
+  /**
    * Use node-gphoto2 to capture an image from the active camera
    * and upload to Amazon S3
    *
@@ -118,46 +162,11 @@ Timelapse.prototype = {
 
     var self = this;
 
-    // keep a callback in case something goes wrong
-    var callback = function(){
-      this.takePicture(imageProps);
-    }.bind(self);
-
     if(!this.camera){
 
-      /*
-        no camera was detected.  this is probably the first exposure in the series,
-        but may be a crash recovery.  either way, re-instantiate GPhoto2 and try to
-        find a camera to use.  Since this is an async process, need to provide a callback.
-       */
-
-      gphoto2 = require('gphoto2');
-      var GPhoto = new gphoto2.GPhoto2();
-
-      // List cameras / assign list item to variable to use below options
-      GPhoto.list(function (list) {
-
-        if (list.length === 0) {
-          // no cameras found?  not buying it.
-          self.resetUsb('no cameras found', callback);
-          return;
-        }
-
-        self.camera = list[0];
-
-        // determine the usb bus and port to reset
-        var port = self.camera.port.match(/usb:([0-9]+),([0-9]+)/);
-        self.usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
-
-        winston.info('Found', self.camera.model);
-        winston.info('Camera found on port ' + self.usbPath);
-
-        // take the picture as a callback
-        callback();
-
-      });
-
-      return;
+      this.connectToCamera(function(){
+        this.takePicture(imageProps);
+      }.bind(this))
 
     }
 
