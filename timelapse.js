@@ -23,11 +23,11 @@ var Timelapse = function(exposureSeq, preferences){
   // moment.js configuration
   moment.locale('en', {
     calendar : {
-      lastDay : '[yesterday at] LTS',
-      sameDay : '[today] (L) [at] LTS',
-      nextDay : '[tomorrow] (L) [at] LTS',
-      lastWeek : '[last] dddd [at] LTS',
-      nextWeek : 'dddd (L) [at] LTS',
+      lastDay : '[yesterday] (MMM Do) [at] LTS',
+      sameDay : '[today] (MMM Do) [at] LTS',
+      nextDay : '[tomorrow] (MMM Do) [at] LTS',
+      lastWeek : '[last] dddd (MMM Do) [at] LTS',
+      nextWeek : 'dddd (MMM Do) [at] LTS',
       sameElse : 'L'
     }
   });
