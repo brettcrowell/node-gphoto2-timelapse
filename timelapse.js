@@ -19,6 +19,7 @@ var Timelapse = function(exposureSeq, preferences){
   // preferences
   this.preferences = preferences || {};
   this.preferences["maxMillisecondsBetweenImages"] = this.preferences["maxMillisecondsBetweenImages"] || 3600000;
+  this.preferences["minImageFileSize"] = this.preferences["minImageFileSize"] || 100000;
 
   // moment.js configuration
   moment.locale('en', {
@@ -207,12 +208,26 @@ Timelapse.prototype = {
 
             winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
 
-            if(fileSizeInBytes < 100000){
+            if(fileSizeInBytes < this.parameters.minImageFileSize || imageProps.discard){
 
-              this.resetUsb('insufficient filesize detected', callback);
+              /*
+                  if either invalid image data, or data meant to be discarded (ex. keep-alive images),
+                  remove the file from disk.
+               */
+
               fs.unlink(imagePath);
 
-              return;
+              if(fileSizeInBytes < this.parameters.minImageFileSize){
+
+                /*
+                    there was an error and the camera has returned bad data.
+                    see if we can recover and try again!
+                 */
+
+                this.resetUsb('insufficient filesize detected', callback);
+                return;
+
+              }
 
             }
 
