@@ -22,22 +22,17 @@ sudo dpkg -i node_0.10.35_armhf.deb
 ```
 _Non Raspberry Pi users may want to consider using NVM to maintain multiple versions of Node.  More information can be found at https://github.com/creationix/nvm_
 
-3) Install node-gyp to ease the installation of node-gphoto2...
-
-```sh
-sudo npm install -g node-gyp
-```
-
-4) Install node-gphoto2 globally...
-
-```sh
-sudo npm install -g gphoto2
-```
-
-5) And finally, clone this repo...
+3) Clone this repo...
 
 ```sh
 $ git clone git@github.com:brettcrowell/node-gphoto2-timelapse.git
+```
+
+4) Install Node dependencies...
+
+```sh
+$ cd node-gphoto2-timelapse
+$ npm install
 ```
 
 ### USB Reset Script

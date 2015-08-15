@@ -1,42 +1,56 @@
+var gphoto2 = undefined;
+var aws = require('aws-sdk');
+var fs = require('fs');
+var winston = require('winston');
+var seq = require('./sequence.js');
+var moment = require('moment');
+var exec = require('child_process').exec;
+
 /**
  * A tool for creating timelapses with GPhoto2 and Node.JS
  * @param sequence
  * @constructor
  */
 
-var Timelapse = function(exposureSeq){
+var Timelapse = function(exposureSeq, preferences){
 
   var now = new Date().getTime();
 
-  //@todo find out how other node developers do this!!
-  this.libs = {
+  // preferences
+  this.preferences = preferences || {};
+  this.preferences["maxMillisecondsBetweenImages"] = this.preferences["maxMillisecondsBetweenImages"] || 3600000;
+  this.preferences["minImageFileSize"] = this.preferences["minImageFileSize"] || 100000;
 
-    gphoto2: undefined,
-    aws: require('aws-sdk'),
-    fs: require('fs'),
-    winston: require('winston'),
-    seq: require('./sequence.js'),
-    exec: require('child_process').exec
-    
-  }
+  // moment.js configuration
+  moment.locale('en', {
+    calendar : {
+      lastDay : '[yesterday] (MMM Do) [at] LTS',
+      sameDay : '[today] (MMM Do) [at] LTS',
+      nextDay : '[tomorrow] (MMM Do) [at] LTS',
+      lastWeek : '[last] dddd (MMM Do) [at] LTS',
+      nextWeek : 'dddd (MMM Do) [at] LTS',
+      sameElse : 'L'
+    }
+  });
 
   this.camera = undefined;
   this.usbPath = undefined;
-  this.sequence = (exposureSeq.length > 0) ? new this.libs.seq.Sequence(exposureSeq) : exposureSeq;
+  this.deferredImage = undefined;
+  this.sequence = (exposureSeq.length > 0) ? new seq.Sequence(exposureSeq) : exposureSeq;
 
-  if (!this.libs.fs.existsSync('logs')){
-    this.libs.fs.mkdirSync('logs');
+  if (!fs.existsSync('logs')){
+    fs.mkdirSync('logs');
   }
 
-  this.libs.winston.exitOnError = false;
-  this.libs.winston.add(this.libs.winston.transports.File, { filename: 'logs/' + now + '.log' });
-  this.libs.winston.info('solar lapse is up and running at ' + now);
+  winston.exitOnError = false;
+  winston.add(winston.transports.File, { filename: 'logs/' + now + '.log' });
+  winston.info('solar lapse is up and running at ' + moment(now).format('LTS [on] L'));
 
   /**
    * swallowing all errors this way is a bad idea, @todo: please revisit!
    */
   process.on('uncaughtException', function (err) {
-    this.libs.winston.warn('Caught uncaught exception: ' + err);
+    winston.warn('Caught uncaught exception: ' + err);
   }.bind(this));
 
   // @todo: future support for separting photos into buckets dynamically
@@ -58,25 +72,25 @@ Timelapse.prototype = {
 
     var self = this;
 
-    self.libs.winston.info("resetting usb port because " + reason);
+    winston.info("resetting usb port because " + reason);
 
     if(this.camera){
 
       // clear out old data so callback will trigger correct phase
       this.camera = null;
-      this.libs.gphoto2 = null;
+      gphoto2 = null;
 
-      this.libs.winston.warn('re-establishing connection to ' + self.usbPath);
+      winston.warn('re-establishing connection to ' + self.usbPath);
 
-      this.libs.exec('./usbreset ' + self.usbPath, function(err, stdout, stderr){
+      exec('./usbreset ' + self.usbPath, function(err, stdout, stderr){
 
-        self.libs.winston.info('stdout: ' + stdout);
-        self.libs.winston.info('stderr: ' + stderr);
+        winston.info('stdout: ' + stdout);
+        winston.info('stderr: ' + stderr);
 
         if (err !== null) {
 
           // crash if we can't get going again
-          self.libs.winston.error('exec error: ' + err);
+          winston.error('exec error: ' + err);
 
         }
 
@@ -86,7 +100,7 @@ Timelapse.prototype = {
 
     } else {
 
-      self.libs.winston.error('unable to locate usable camera.  please check hardware');
+      winston.error('unable to locate usable camera.  please check hardware');
       process.exit(1);
 
     }
@@ -94,115 +108,152 @@ Timelapse.prototype = {
   },
 
   /**
-   * Use node-this.libs.gphoto2 to capture an image from the active camera
+   * called when no camera was detected.  this is usually the first exposure in the series,
+   * but may be a crash recovery.  either way, re-instantiate GPhoto2 and try to
+   * find a camera to use.  Since this is an async process, need to provide a callback.
+   *
+   * @param callback
+   */
+
+  connectToCamera: function(callback){
+
+    // re-establish the global reference to gphoto2 module
+    gphoto2 = require('gphoto2');
+
+    var GPhoto = new gphoto2.GPhoto2();
+
+    // List cameras / assign list item to variable to use below options
+    GPhoto.list(function (list) {
+
+      if (list.length === 0) {
+
+        // no cameras found?  not buying it.
+        this.resetUsb('no cameras found', callback);
+        return;
+
+      }
+
+      this.camera = list[0];
+
+      // determine the usb bus and port to reset
+      var port = this.camera.port.match(/usb:([0-9]+),([0-9]+)/);
+      this.usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
+
+      winston.info('found', this.camera.model);
+      winston.info('camera found on port ' + this.usbPath);
+
+      // take the picture as a callback
+      callback();
+
+    }.bind(this));
+
+  },
+
+  /**
+   * Use node-gphoto2 to capture an image from the active camera
    * and upload to Amazon S3
    *
-   * @param camera  An instance of a this.libs.gphoto2 camera
+   * @param camera  An instance of a gphoto2 camera
    * @param imageProps Image metadata including name and timestamp (ts)
    */
 
   takePicture: function(imageProps){
 
-    var self = this;
-
-    // keep a callback in case something goes wrong
-    var callback = function(){
-      this.takePicture(imageProps);
-    }.bind(self);
+    // should anything go wrong, we'll want to be able to return via callback to this iteration
+    var callback = function(){ this.takePicture(imageProps); }.bind(this);
 
     if(!this.camera){
 
       /*
-        no camera was detected.  this is probably the first exposure in the series,
-        but may be a crash recovery.  either way, re-instantiate GPhoto2 and try to
-        find a camera to use.  Since this is an async process, need to provide a callback.
+          if we don't currently have a camera connection,
+          find one and return via callback
        */
 
-      this.libs.gphoto2 = require('gphoto2');
-      var GPhoto = new this.libs.gphoto2.GPhoto2();
+      this.connectToCamera(callback);
 
-      // List cameras / assign list item to variable to use below options
-      GPhoto.list(function (list) {
-
-        if (list.length === 0) {
-          // no cameras found?  not buying it.
-          self.resetUsb('no cameras found', callback);
-          return;
-        }
-
-        self.camera = list[0];
-
-	// determine the usb bus and port to reset
-	var port = self.camera.port.match(/usb:([0-9]+),([0-9]+)/);
-        self.usbPath = '/dev/bus/usb/' + port[1] + '/' + port[2];
-
-        self.libs.winston.info('Found', self.camera.model);
-	self.libs.winston.info('Camera found on port ' + self.usbPath);
-
-        // take the picture as a callback
-        callback();
-
-      });
-
-      return;
-
-    }
-
-    // no camera problems if we've made it here, take a photo
-
-    this.camera.takePicture({download: true}, function (er, data) {
+    } else {
 
       /*
-        image data returned from the camera.  check to make sure that it wasn't 'bad data' (anything under 100kb)
-        and if all is good, upload it to Amazon S3 and delete from local output directory.
+          If we've made it here, we've found a camera and should be clear to take the next picture.
+          We're not in the clear, though, as the camera may have disconnected or may return bad data
        */
 
-      var imageFilename = imageProps.name + imageProps.ts + '.jpg',
-          imageDirectory = __dirname + '/output',
-          imagePath = imageDirectory + '/' + imageFilename;
+      this.camera.takePicture({download: true}, function (er, data) {
 
-      if (!self.libs.fs.existsSync(imageDirectory)){
-        self.libs.fs.mkdirSync(imageDirectory);
-      }
+        /*
+           image data returned from the camera.  check to make sure that it wasn't 'bad data' (anything under 100kb)
+           and if all is good, upload it to Amazon S3 and delete from local output directory.
+         */
 
-      self.libs.winston.info('taking image ' + imageProps.name + ' (' + imageProps.ts + ')');
+        var imageFilename = imageProps.name + imageProps.ts + '.jpg',
+            imageDirectory = __dirname + '/output',
+            imagePath = imageDirectory + '/' + imageFilename;
 
-      self.libs.fs.writeFile(imagePath, data, function (err) {
-
-        if (err){
-
-          //resetUsb('error writing data to disk');
-
-        } else {
-
-          var fileSizeInBytes = self.libs.fs.statSync(imagePath)["size"],
-              fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
-
-          self.libs.winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
-
-          if(fileSizeInBytes < 100000){
-
-            self.resetUsb('insufficient filesize detected', callback);
-            self.libs.fs.unlink(imagePath);
-            return;
-
-          }
-
-          if(imageProps.bucket){
-            self.uploadToS3(imagePath, 'bc-timelapse', imageProps.bucket + "/" + imageFilename);
-          }
-
+        if (!fs.existsSync(imageDirectory)){
+          fs.mkdirSync(imageDirectory);
         }
 
-        var currentImageDelay = new Date().getTime() - imageProps.ts;
+        winston.info('taking image ' + imageProps.name + ' (' + imageProps.ts + ')');
 
-        self.libs.winston.info('operating delay for current image was ' + (currentImageDelay / 1000) + "s")
+        fs.writeFile(imagePath, data, function (err) {
 
-        self.takeNextPicture(currentImageDelay);
+          if (err){
 
-      });
+            //resetUsb('error writing data to disk');
 
-    });
+          } else {
+
+            var fileSizeInBytes = fs.statSync(imagePath)["size"];
+            var fileSizeInMegabytes = fileSizeInBytes / 1000000.0;
+
+            winston.info('Size of ' + imageFilename + ': ' + fileSizeInMegabytes + 'mb');
+
+            if(fileSizeInBytes < this.preferences.minImageFileSize || imageProps.discard){
+
+              /*
+                  if either invalid image data, or data meant to be discarded (ex. keep-alive images),
+                  remove the file from disk.
+               */
+
+              fs.unlink(imagePath);
+
+              if(fileSizeInBytes < this.preferences.minImageFileSize){
+
+                /*
+                    there was an error and the camera has returned bad data.
+                    see if we can recover and try again!
+                 */
+
+                this.resetUsb('insufficient filesize detected', callback);
+                return;
+
+              }
+
+            }
+
+            if(imageProps.bucket){
+              this.uploadToS3(imagePath, 'bc-timelapse', imageProps.bucket + "/" + imageFilename);
+            }
+
+          }
+
+          /*
+              We've now found a camera, captured a good image and saved it to disk and/or Amazon S3.
+              Now we must determine how far behind schedule we are (if at all) and prepare to take
+              the next image specified by the sequence.
+           */
+
+          var currentImageDelay = new Date().getTime() - imageProps.ts;
+
+          winston.info('current image has processed ' + (currentImageDelay / 1000) + "s behind scheduled time")
+
+          this.takeNextPicture(currentImageDelay);
+
+        }.bind(this));
+
+      }.bind(this));
+
+    }
 
   },
 
@@ -211,9 +262,9 @@ Timelapse.prototype = {
     var recurse = recurse || 2,
         self = this;
 
-    var imageStream = self.libs.fs.createReadStream(imagePath);
+    var imageStream = fs.createReadStream(imagePath);
 
-    var s3 = new self.libs.aws.S3({
+    var s3 = new aws.S3({
       params: {
         Bucket: bucket,
         Key: key
@@ -224,7 +275,7 @@ Timelapse.prototype = {
 
       if (err) {
 
-        self.libs.winston.warn("error uploading data: ", err);
+        winston.warn("error uploading data: ", err);
 
         if(recurse > 0){
           self.uploadToS3(imagePath, bucket, key, recurse - 1);
@@ -232,10 +283,10 @@ Timelapse.prototype = {
 
       } else {
 
-        self.libs.winston.info(key + ' has uploaded successfully to S3')
+        winston.info(key + ' has uploaded successfully to S3')
 
         // only delete data if we're sure we've uploaded it to s3
-        self.libs.fs.unlink(imagePath);
+        fs.unlink(imagePath);
 
       }
 
@@ -254,26 +305,54 @@ Timelapse.prototype = {
 
       if(this.sequence.hasMoreImages(delay)){
 
-        var currentTime = new Date().getTime(),
-            nextImage = this.sequence.getNextImage(delay);
+        var currentTime = new Date().getTime();
 
-        // if a previous image was delayed and we aren't strict, the next image might be in the past.
-        // just take it immediately.
-        var interval = nextImage.ts - currentTime;
-        interval = (interval < 0) ? 0 : interval;
+        // images may be deferred if they cause the camera to idle for too long
+        var nextImage = this.deferredImage || this.sequence.getNextImage(delay);
 
-        setTimeout(function(){
+        var millisecondsUntilNextImage = nextImage.ts - currentTime;
 
-          // wait (diff now and next exposure) then recurse
-          this.takePicture(nextImage);
+        // if a previous image was delayed and we aren't strict, the next image might be in the past.  just take it immediately.
+        millisecondsUntilNextImage = (millisecondsUntilNextImage < 0) ? 0 : millisecondsUntilNextImage;
 
-        }.bind(this), interval);
+        if(millisecondsUntilNextImage > this.preferences.maxMillisecondsBetweenImages){
+
+          /*
+             some cameras have been known to 'drop off' if they aren't accessed frequently enough.
+             the following provision will take a throwaway image every (default 60 mins) to prevent that.
+           */
+
+          this.deferredImage = nextImage;
+
+          nextImage = {
+
+            name: "keep-alive-signal",
+            ts: currentTime + this.preferences.maxMillisecondsBetweenImages,
+            discard: true
+
+          };
+
+          millisecondsUntilNextImage = this.preferences.maxMillisecondsBetweenImages;
+
+        } else {
+
+          // if the next image is in an acceptable range, we no longer need to defer
+          this.deferredImage = null;
+
+        }
+
+        // due to built in delays, next image might not capture at specified ts.  keep the user informed!
+        var nextImageActualTs = currentTime + millisecondsUntilNextImage;
+        winston.info("next image (`" + nextImage.name + "`) will be taken " + moment(nextImageActualTs).calendar());
+
+        // use a javascript timeout to wait, then capture the next image
+        setTimeout(function(){ this.takePicture(nextImage); }.bind(this), millisecondsUntilNextImage);
 
         return;
 
       }
 
-      this.libs.winston.info('done');
+      winston.info('done');
 
     }
 
