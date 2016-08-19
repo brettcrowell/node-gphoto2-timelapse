@@ -13,7 +13,7 @@ var numDays = 7;
 var outputMinutes = 1;
 var outputFPS = 30;
 
-var epoch = new Date("2016-8-18");
+var epoch = new Date("2016-8-18").getTime();
 var myTestSequence = new seq.Sequence();
 
 myTestSequence.addImage({
