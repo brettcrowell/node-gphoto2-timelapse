@@ -49,6 +49,8 @@ function buildTimelapseDay(date, sequence){
     winston.warn("some cameras/configurations may have trouble capturing more frequently than every 10 seconds.  be careful!")
   }
 
+  winston.warn(numFrames);
+
   for(var i = 0; i < numFrames; i++){
     sequence.addImage({
 
