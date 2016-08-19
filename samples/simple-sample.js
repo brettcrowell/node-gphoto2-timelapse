@@ -6,10 +6,11 @@ var now = new Date().getTime(),
 
 // take 30 exposures, one every 30 seconds, starting immediatey
 
-for(var i = 0; i < 30; i++){
+for(var i = 0; i < 2700; i++){
   myTestSequence.addImage({
-    name: 'test-lapse',
-    ts: now + (i * 30000)
+    name: 'goldenDome',
+    bucket: 'goldenDome' + now,
+    ts: now + (i * 32000)
   });
 }
 
