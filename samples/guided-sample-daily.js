@@ -16,6 +16,13 @@ var outputFPS = 30;
 var epoch = new Date("2016-8-18").getTime();
 var myTestSequence = new seq.Sequence();
 
+for(var i = 0; i < numDays; i++) {
+
+  // 86400000 is # milliseconds in a day
+  buildTimelapseDay(new Date(epoch + (i * 86400000)), myTestSequence);
+
+}
+
 myTestSequence.addImage({
 
   name: 'test-image',
@@ -23,13 +30,6 @@ myTestSequence.addImage({
   ts: new Date().getTime() + 1000
 
 });
-
-for(var i = 0; i < numDays; i ++) {
-
-  var millisecondsAfterEpoch = i * 86400000; // 86400000 is # milliseconds in a day
-  buildTimelapseDay(new Date(epoch + millisecondsAfterEpoch), myTestSequence);
-
-}
 
 function buildTimelapseDay(date, sequence){
 
