@@ -10,7 +10,7 @@ var lapseName = "goldenDomeDaily";
 var awsBucketName = lapseName + new Date().getTime();
 
 var numDays = 7;
-var outputMinutes = 60;
+var outputMinutes = 1;
 var outputFPS = 30;
 
 var epoch = new Date("2016-8-18");
@@ -40,8 +40,8 @@ function buildTimelapseDay(date, sequence){
 
   // calculate lapse properties based on preferences @todo integrate moment.js!
   var numFrames = (outputMinutes * 60) * outputFPS,
-    secondsToLapse = (dusk - dawn) / 1000,
-    frameInterval = parseInt(secondsToLapse / numFrames, 10);
+      secondsToLapse = (dusk - dawn) / 1000,
+      frameInterval = parseInt(secondsToLapse / numFrames, 10);
 
   winston.info("frame interval calculated at " + frameInterval + "s for day");
 
